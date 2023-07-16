@@ -43,18 +43,22 @@ class UserViewSet(UserViewSet):
             detail=True,
             methods=['post'],
             serializer_class=SubscribeSerializer,
-            permission_classes=(IsAuthenticatedOrAdmin,)
+            permission_classes=(IsAuthenticatedOrAdmin,),
     )
     def subscribe(self, request, **kwargs):
         author = self.get_user(kwargs['id'])
         if request.user == author:
             raise exceptions.ValidationError(
-                'Подписываться на себя запрещено.')
+                'Подписываться на себя запрещено.'
+            )
         _, created = Subscribe.objects.get_or_create(
-            user=request.user, author=author)
+            user=request.user,
+            author=author
+        )
         if not created:
             raise exceptions.ValidationError(
-                'Вы уже подписаны на этого пользователя.')
+                'Вы уже подписаны на этого пользователя.'
+            )
         serializer = self.get_serializer(author)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
