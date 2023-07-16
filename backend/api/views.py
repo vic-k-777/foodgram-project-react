@@ -39,12 +39,10 @@ class UserViewSet(UserViewSet):
         )
         return self.get_paginated_response(serializer.data)
 
-    @action(
-            detail=True,
+    @action(detail=True,
             methods=['post'],
             serializer_class=SubscribeSerializer,
-            permission_classes=(IsAuthenticatedOrAdmin,),
-    )
+            permission_classes=(IsAuthenticatedOrAdmin,))
     def subscribe(self, request, **kwargs):
         author = self.get_user(kwargs['id'])
         if request.user == author:
