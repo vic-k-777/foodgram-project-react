@@ -9,6 +9,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+]
+
 
 # Application definition
 
@@ -27,11 +31,13 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'recipes.apps.RecipesConfig',
     'users.apps.UsersConfig',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -161,3 +167,6 @@ USER_LAST_NAME_MAX_LENGTH = 150
 USER_PASSWORD_MAX_LENGTH = 150
 REGEX_USER = re.compile(r"^[\w.@+-]+\Z")
 REGEX_COLOR_TAG = re.compile(r"^#([a-fA-F0-9]{6})")
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_URLS_REGEX = r'^/api/.*$'
