@@ -1,14 +1,15 @@
+import re
+
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
-from foodgram import settings
 
 
 class User(AbstractUser):
     """Создадим класс для Пользователей"""
     email = models.EmailField(
         verbose_name='email',
-        max_length=settings.USER_EMAIL_MAX_LENGTH,
+        max_length=254,
         unique=True,
         error_messages={
             'unique': 'Пользователь с таким e-mail уже существует.',
@@ -16,14 +17,14 @@ class User(AbstractUser):
     )
     username = models.CharField(
         verbose_name='Логин',
-        max_length=settings.USER_USERNAME_MAX_LENGTH,
+        max_length=150,
         unique=True,
         error_messages={
             'unique': 'Пользователь с таким username уже существует.',
         },
         validators=[
             RegexValidator(
-                settings.REGEX_USER,
+                re.compile(r"^[\w.@+-]+\Z"),
                 message=('Недопустимые символы в имени пользователя.')
             )
         ]
@@ -31,15 +32,15 @@ class User(AbstractUser):
     )
     first_name = models.CharField(
         verbose_name='Имя',
-        max_length=settings.USER_FIRST_NAME_MAX_LENGTH,
+        max_length=150,
     )
     last_name = models.CharField(
         verbose_name='Фамилия',
-        max_length=settings.USER_LAST_NAME_MAX_LENGTH,
+        max_length=150,
     )
     password = models.CharField(
         verbose_name='Пароль',
-        max_length=settings.USER_PASSWORD_MAX_LENGTH,
+        max_length=150,
     )
 
     USERNAME_FIELD = 'email'

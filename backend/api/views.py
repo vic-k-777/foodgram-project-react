@@ -1,6 +1,11 @@
+from api.filters import RecipeFilter
 from api.pagination import CustomPagination
-from api.permissions import IsAuthenticatedOrAdmin
-from api.serializers import SubscribeSerializer, UsersSerialiser
+from api.permissions import IsAuthenticatedOrAdmin, IsAuthorOrReadOnly
+from api.serializers import (CustomUserSerialiser, IngredientSerializer,
+                             RecipeReadSerializer, RecipeShortSerializer,
+                             RecipeWriteSerializer, SubscribeSerializer,
+                             TagSerializer)
+from django.db.models import Exists, OuterRef
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,18 +17,12 @@ from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 from users.models import Subscribe, User
 
-from .filters import RecipeFilter
-from .permissions import IsAuthorOrReadOnly
-from .serializers import (IngredientSerializer, RecipeReadSerializer,
-                          RecipeShortSerializer, RecipeWriteSerializer,
-                          TagSerializer)
 
-
-class UserViewSet(UserViewSet):
+class CustomUserViewSet(UserViewSet):
     """Вьюсет для пользователей"""
     queryset = User.objects.all()
     pagination_class = CustomPagination
-    serializer_class = UsersSerialiser
+    serializer_class = CustomUserSerialiser
 
     def get_user(self, id):
         return get_object_or_404(User, id=id)
@@ -98,6 +97,25 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeReadSerializer
         return RecipeWriteSerializer
 
+    def get_queryset(self):
+        if not self.user.is_authenticated:
+            return super().get_queryset()
+
+        return super().get_queryset().annotate(
+            is_favorited=Exists(Favorited.objects.filter(
+                user=self.user, recipe=OuterRef('pk'))
+            ),
+            is_in_shopping_cart=Exists(ShoppingCart.objects.filter(
+                user=self.user, recipe=OuterRef('pk'))
+            )
+        )
+
+    def get_is_favorited(self, obj):
+        return obj.is_favorited
+
+    def get_is_in_shopping_cart(self, obj):
+        return obj.is_in_shopping_cart
+
     def get_recipe(self, id):
         return get_object_or_404(Recipe, id=id)
 
@@ -120,11 +138,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def delete_from_shopping_cart(self, request, pk):
         return self.delete_from(ShoppingCart, request.user, pk)
 
-    @action(detail=False, methods=['get'],
-            permission_classes=(IsAuthenticated,))
-    def download_shopping_cart(self, request):
-        user = request.user
-        purchases = ShoppingCart.objects.filter(user=user)
+    def create_shopping_list_file(purchases):
         file = 'shopping-list.txt'
         with open(file, 'w') as f:
             shop_cart = dict()
@@ -141,8 +155,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
                         shop_cart[point_name] = r.amount
 
             for name, amount in shop_cart.items():
-                f.write(f'* {name} - {amount}\n')
+                f.write(f'* {name} - {amount}n')
+        return file
 
+    @action(
+            detail=False,
+            methods=['get'],
+            permission_classes=(IsAuthenticated,)
+    )
+    def download_shopping_cart(self, request):
+        user = request.user
+        purchases = ShoppingCart.objects.filter(user=user)
+        file = self.create_shopping_list_file(purchases)
         return FileResponse(open(file, 'rb'), as_attachment=True)
 
     def add_to(self, model, user, pk):

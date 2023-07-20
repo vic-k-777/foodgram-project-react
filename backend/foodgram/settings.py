@@ -1,13 +1,12 @@
 import os
-import re
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = '*pr%h^mbns4da$m*q3xs#dhi+@ys82s)u=r!d#y_)=_ra_$q98'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG')
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(' ')
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
@@ -27,7 +26,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
-    "drf_base64",
+    'drf_base64',
     'api.apps.ApiConfig',
     'recipes.apps.RecipesConfig',
     'users.apps.UsersConfig',
@@ -154,19 +153,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 AUTH_USER_MODEL = 'users.User'
 
 EMPTY_VALUE_DISPLAY = '-пусто-'
-TAG_MAX_LENGTH = 50
-TAG_MAX_LENGTH_COLOR_FIELD = 7
-INGREDIENT_NAME_MAX_LENGTH = 200
-INGREDIENT_MEASUREMENT_UNIT_MAX_LENGTH = 20
-RECIPE_NAME_MAX_LENGTH = 50
-
-USER_EMAIL_MAX_LENGTH = 254
-USER_USERNAME_MAX_LENGTH = 150
-USER_FIRST_NAME_MAX_LENGTH = 150
-USER_LAST_NAME_MAX_LENGTH = 150
-USER_PASSWORD_MAX_LENGTH = 150
-REGEX_USER = re.compile(r"^[\w.@+-]+\Z")
-REGEX_COLOR_TAG = re.compile(r"^#([a-fA-F0-9]{6})")
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_URLS_REGEX = r'^/api/.*$'

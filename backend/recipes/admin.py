@@ -1,8 +1,8 @@
 from django.conf import settings
 from django.contrib import admin
 
-from .models import (Favorited, Ingredient, Recipe, RecipeIngredient,
-                     ShoppingCart, Tag)
+from recipes.models import (Favorited, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag,)
 
 
 class TagAdmin(admin.ModelAdmin):

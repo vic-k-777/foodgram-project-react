@@ -1,4 +1,5 @@
 from django_filters.rest_framework import FilterSet, filters
+
 from recipes.models import Recipe, Tag
 
 
@@ -26,12 +27,4 @@ class RecipeFilter(FilterSet):
         user = self.request.user
         if value and user.is_authenticated:
             return queryset.filter(shopping__user=user)
-        return queryset
-
-    def filter_author(self, queryset, name, value):
-        if value.isdigit():
-            return queryset.filter(**{name: value})
-        if value == 'me':
-            value = self.request.user.id
-            return queryset.filter(**{name: value})
         return queryset

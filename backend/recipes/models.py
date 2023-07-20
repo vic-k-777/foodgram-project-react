@@ -1,6 +1,8 @@
+import re
+
 from django.core.validators import RegexValidator
 from django.db import models
-from foodgram import settings
+
 from users.models import User
 
 
@@ -8,16 +10,16 @@ class Tag(models.Model):
     """Создадим класс для Тегов"""
     name = models.CharField(
         verbose_name='Название',
-        max_length=settings.TAG_MAX_LENGTH,
+        max_length=50,
         unique=True,
     )
     color = models.CharField(
         verbose_name='Цветовой HEX-код',
-        max_length=settings.TAG_MAX_LENGTH_COLOR_FIELD,
+        max_length=7,
         unique=True,
         validators=[
             RegexValidator(
-                settings.REGEX_COLOR_TAG,
+                re.compile(r"^#([a-fA-F0-9]{6})"),
                 message=('Поле должно содержать HEX-код выбранного цвета.')
             )
         ]
@@ -40,11 +42,11 @@ class Ingredient(models.Model):
     """Создадим класс для Ингредиентов"""
     name = models.CharField(
         verbose_name='Название',
-        max_length=settings.INGREDIENT_NAME_MAX_LENGTH,
+        max_length=200,
     )
     measurement_unit = models.CharField(
         verbose_name='Единицы изменения',
-        max_length=settings.INGREDIENT_MEASUREMENT_UNIT_MAX_LENGTH,
+        max_length=20,
     )
 
     class Meta:
@@ -70,7 +72,7 @@ class Recipe(models.Model):
     )
     name = models.CharField(
         verbose_name='Название',
-        max_length=settings.RECIPE_NAME_MAX_LENGTH,
+        max_length=50,
     )
     image = models.ImageField(
         upload_to='recipe/images/',
