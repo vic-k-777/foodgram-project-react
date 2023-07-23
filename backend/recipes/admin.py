@@ -28,6 +28,8 @@ class RecipeAdmin(admin.ModelAdmin):
     ordering = ('name',)
     empty_value_display = settings.EMPTY_VALUE_DISPLAY
 
+    filter_horizontal = ('tags',)
+
     def count_favorites(self, obj):
         return obj.favorites.count()
 

@@ -2,11 +2,11 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', 'default_secret_key')
 
-DEBUG = os.getenv('DEBUG')
+DEBUG = bool(os.getenv('DEBUG', default='False')) is True
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(' ')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
@@ -97,8 +97,8 @@ DJOSER = {
     "HIDE_USERS": False,
     "SERIALIZERS": {
         "user_create": "api.serializers.CustomUserCreateSerializer",
-        "user": "api.serializers.UsersSerialiser",
-        "current_user": "api.serializers.CustomUsersSerialiser",
+        "user": "api.serializers.CustomUserSerializer",
+        "current_user": "api.serializers.CustomUserSerializer",
         "set_password": "api.serializers.CustomSetPasswordSerializer",
     },
     "PERMISSIONS": {

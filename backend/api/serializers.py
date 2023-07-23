@@ -1,15 +1,16 @@
 from django.db import transaction
-from django.shortcuts import get_object_or_404
-from djoser.serializers import UserSerializer
+
 from drf_base64.fields import Base64ImageField
-from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer
+from rest_framework.validators import UniqueTogetherValidator
+
+from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from users.models import Subscribe, User
 
 
-class CustomUsersSerialiser(UserSerializer):
+class CustomUserSerializer(serializers.BaseSerializer):
     """Сериализатор класса Пользователей"""
     is_subscribed = serializers.SerializerMethodField()
 
@@ -55,6 +56,7 @@ class IngredientSerializer(ModelSerializer):
 
 class ShortIngredientSerializer(serializers.ModelSerializer):
     """Список ингредиентов для рецепта"""
+
     id = serializers.IntegerField()
     amount = serializers.DecimalField(max_digits=7, decimal_places=2)
 
@@ -65,17 +67,18 @@ class ShortIngredientSerializer(serializers.ModelSerializer):
 
 class GetIngredientRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор получения списка ингредиентов к рецепту"""
-    id = serializers.SerializerMethodField()
+
     name = serializers.SerializerMethodField()
     measurement_unit = serializers.SerializerMethodField()
     amount = serializers.SerializerMethodField()
+    ingredient = serializers.PrimaryKeyRelatedField(
+        source='ingredient.id',
+        read_only=True
+    )
 
     class Meta:
         model = RecipeIngredient
-        fields = ('id', 'name', 'measurement_unit', 'amount')
-
-    def get_id(self, obj):
-        return obj.ingredient.id
+        fields = ('ingredient', 'name', 'measurement_unit', 'amount')
 
     def get_name(self, obj):
         return obj.ingredient.name
@@ -90,7 +93,7 @@ class GetIngredientRecipeSerializer(serializers.ModelSerializer):
 class RecipeReadSerializer(serializers.ModelSerializer):
     """Сериализатор класса чтения рецепта"""
     tags = TagSerializer(many=True, read_only=True)
-    author = serializers.CustomUserSerialiser(read_only=True)
+    author = CustomUserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField(read_only=True)
     is_favorited = serializers.BooleanField(read_only=True)
@@ -117,7 +120,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         many=True,
         queryset=Tag.objects.all(),
     )
-    author = serializers.CustomUserSerialiser(read_only=True)
+    author = CustomUserSerializer(read_only=True)
     ingredients = ShortIngredientSerializer(many=True)
     image = Base64ImageField(max_length=None, use_url=True)
 
@@ -125,41 +128,50 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = '__all__'
         read_only_fields = ('author',)
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Recipe.objects.all(),
+                fields=['name', 'text', 'cooking_time'],
+                message=('Обязательное поле')
+            ),
+            UniqueTogetherValidator(
+                queryset=Ingredient.objects.all(),
+                fields=('ingredients'),
+                message=('Ингредиенты должны быть уникальными')
+            )
+        ]
 
-    def validate(self, obj):
-        for field in ['name', 'text', 'cooking_time']:
-            if not obj.get(field):
-                raise ValidationError(f'{field} - Обязательное поле.')
+    def validate_tags(self, obj):
         if not obj.get('tags'):
             raise ValidationError(
                 'Убедитесь, что это значение больше либо равно 1.'
             )
+        return obj
+
+    def validate_ingredients(self, obj):
         if not obj.get('ingredients'):
             raise ValidationError(
                 'Убедитесь, что это значение больше либо равно 1.'
             )
-        inrgedient_id_list = [item['id'] for item in obj.get('ingredients')]
-        if len(inrgedient_id_list) != len(set(inrgedient_id_list)):
-            raise ValidationError('Ингредиенты должны быть уникальны.')
         return obj
 
     @transaction.atomic
     def tags_and_ingredients_set(self, recipe, tags, ingredients):
         recipe.tags.set(tags)
-        recipe_ingredients = []
-
-        for ingredient in ingredients:
-            ingredient_object = get_object_or_404(
-                Ingredient,
-                pk=ingredient['id']
+        ingredient_ids = [ingredient['id'] for ingredient in ingredients]
+        ingredients_queryset = Ingredient.objects.filter(pk__in=ingredient_ids)
+        recipe_ingredients = [
+            RecipeIngredient(
+                recipe=recipe,
+                ingredient=ingredient,
+                amount=ingredient_data['amount']
             )
-            recipe_ingredients.append(
-                RecipeIngredient(
-                    recipe=recipe,
-                    ingredient=ingredient_object,
-                    amount=ingredient['amount']
-                )
+            for ingredient_data, ingredient in zip(
+                ingredients,
+                ingredients_queryset
             )
+        ]
+        RecipeIngredient.objects.bulk_create(recipe_ingredients)
 
     @transaction.atomic
     def create(self, validated_data):

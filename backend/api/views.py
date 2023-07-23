@@ -1,20 +1,22 @@
-from api.filters import RecipeFilter
-from api.pagination import CustomPagination
-from api.permissions import IsAuthenticatedOrAdmin, IsAuthorOrReadOnly
-from api.serializers import (CustomUserSerialiser, IngredientSerializer,
-                             RecipeReadSerializer, RecipeShortSerializer,
-                             RecipeWriteSerializer, SubscribeSerializer,
-                             TagSerializer)
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, Prefetch
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
+
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from recipes.models import Favorited, Ingredient, Recipe, ShoppingCart, Tag
 from rest_framework import exceptions, filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
+
+from api.filters import RecipeFilter
+from api.pagination import CustomPagination
+from api.permissions import IsAuthorOrReadOnly
+from api.serializers import (CustomUserSerializer, IngredientSerializer,
+                             RecipeReadSerializer, RecipeShortSerializer,
+                             RecipeWriteSerializer, SubscribeSerializer,
+                             TagSerializer,)
+from recipes.models import Favorited, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Subscribe, User
 
 
@@ -22,12 +24,18 @@ class CustomUserViewSet(UserViewSet):
     """Вьюсет для пользователей"""
     queryset = User.objects.all()
     pagination_class = CustomPagination
-    serializer_class = CustomUserSerialiser
+    serializer_class = CustomUserSerializer
 
     def get_user(self, id):
         return get_object_or_404(User, id=id)
 
-    @action(detail=False, permission_classes=(IsAuthenticatedOrAdmin,))
+
+class SubscriptionViewSet(UserViewSet):
+    """Вьюсет подписок"""
+    serializer_class = SubscribeSerializer
+    pagination_class = CustomPagination
+
+    @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
         queryset = User.objects.filter(following__user=request.user)
         pages = self.paginate_queryset(queryset)
@@ -41,7 +49,7 @@ class CustomUserViewSet(UserViewSet):
     @action(detail=True,
             methods=['post'],
             serializer_class=SubscribeSerializer,
-            permission_classes=(IsAuthenticatedOrAdmin,))
+            permission_classes=(IsAuthenticated,))
     def subscribe(self, request, **kwargs):
         author = self.get_user(kwargs['id'])
         if request.user == author:
@@ -62,7 +70,11 @@ class CustomUserViewSet(UserViewSet):
     @subscribe.mapping.delete
     def unsubscribe(self, request, **kwargs):
         author = self.get_user(kwargs['id'])
-        get_object_or_404(Subscribe, user=request.user, author=author).delete()
+        subscribe_obj = get_object_or_404(
+            Subscribe,
+            user=request.user,
+            author=author)
+        subscribe_obj.delete()
         return Response({'detail': 'Успешная отписка'},
                         status=status.HTTP_204_NO_CONTENT)
 
@@ -85,30 +97,35 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для рецептов"""
-    queryset = Recipe.objects.all()
     pagination_class = CustomPagination
     permission_classes = (IsAuthorOrReadOnly, )
     filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
     http_method_names = ['get', 'post', 'patch', 'create', 'delete']
 
+    def get_queryset(self):
+        queryset = (
+            Recipe.objects
+            .select_related('author')
+            .prefetch_related(
+                Prefetch('tags', queryset=Tag.objects.all()),
+                Prefetch('ingredients', queryset=Ingredient.objects.all()),
+            )
+            .annotate(
+                is_favorited=Exists(Favorited.objects.filter(
+                    user=self.request.user, recipe=OuterRef('pk'))
+                ),
+                is_in_shopping_cart=Exists(ShoppingCart.objects.filter(
+                    user=self.request.user, recipe=OuterRef('pk'))
+                )
+            )
+        )
+        return queryset
+
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
             return RecipeReadSerializer
         return RecipeWriteSerializer
-
-    def get_queryset(self):
-        if not self.user.is_authenticated:
-            return super().get_queryset()
-
-        return super().get_queryset().annotate(
-            is_favorited=Exists(Favorited.objects.filter(
-                user=self.user, recipe=OuterRef('pk'))
-            ),
-            is_in_shopping_cart=Exists(ShoppingCart.objects.filter(
-                user=self.user, recipe=OuterRef('pk'))
-            )
-        )
 
     def get_is_favorited(self, obj):
         return obj.is_favorited
@@ -138,22 +155,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def delete_from_shopping_cart(self, request, pk):
         return self.delete_from(ShoppingCart, request.user, pk)
 
-    def create_shopping_list_file(purchases):
+    def create_shopping_list_file(user):
+        purchases = (
+            ShoppingCart.objects
+            .filter(user=user)
+            .select_related('recipe')
+            .prefetch_related('recipe__ingredients')
+        )
         file = 'shopping-list.txt'
-        with open(file, 'w') as f:
-            shop_cart = dict()
-            for purchase in purchases:
-                ingredients = Ingredient.objects.filter(
-                    recipe=purchase.recipe.id
+        shop_cart = dict()
+        for purchase in purchases:
+            for ingredient in purchase.recipe.ingredients.all():
+                point_name = (
+                    f'{ingredient.name} ({ingredient.measurement_unit})'
                 )
-                for r in ingredients:
-                    i = Ingredient.objects.get(pk=r.ingredient.id)
-                    point_name = f'{i.name} ({i.measurement_unit})'
-                    if point_name in shop_cart.keys():
-                        shop_cart[point_name] += r.amount
-                    else:
-                        shop_cart[point_name] = r.amount
-
+                shop_cart[point_name] = (
+                    shop_cart.get(point_name, 0) + ingredient.amount
+                )
+        with open(file, 'w') as f:
             for name, amount in shop_cart.items():
                 f.write(f'* {name} - {amount}n')
         return file
