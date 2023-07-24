@@ -16,22 +16,22 @@ from api.serializers import (CustomUserSerializer, IngredientSerializer,
                              RecipeReadSerializer, RecipeShortSerializer,
                              RecipeWriteSerializer, SubscribeSerializer,
                              TagSerializer,)
+from api.services import get_shopping_list
 from recipes.models import Favorited, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Subscribe, User
 
 
 class CustomUserViewSet(UserViewSet):
     """Вьюсет для пользователей"""
+
     queryset = User.objects.all()
     pagination_class = CustomPagination
     serializer_class = CustomUserSerializer
 
-    def get_user(self, id):
-        return get_object_or_404(User, id=id)
-
 
 class SubscriptionViewSet(UserViewSet):
     """Вьюсет подписок"""
+
     serializer_class = SubscribeSerializer
     pagination_class = CustomPagination
 
@@ -80,6 +80,7 @@ class SubscriptionViewSet(UserViewSet):
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+
     """Вьюсет для ингредиентов"""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
@@ -89,6 +90,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
+
     """Вьюсет для тегов"""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -97,21 +99,18 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для рецептов"""
+
     pagination_class = CustomPagination
     permission_classes = (IsAuthorOrReadOnly, )
     filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
     http_method_names = ['get', 'post', 'patch', 'create', 'delete']
+    permission_classes = (IsAuthorOrReadOnly, IsAuthenticated)
 
     def get_queryset(self):
-        queryset = (
-            Recipe.objects
-            .select_related('author')
-            .prefetch_related(
-                Prefetch('tags', queryset=Tag.objects.all()),
-                Prefetch('ingredients', queryset=Ingredient.objects.all()),
-            )
-            .annotate(
+        queryset = Recipe.objects.all()
+        if self.request.user.is_authenticated:
+            queryset = queryset.annotate(
                 is_favorited=Exists(Favorited.objects.filter(
                     user=self.request.user, recipe=OuterRef('pk'))
                 ),
@@ -119,6 +118,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     user=self.request.user, recipe=OuterRef('pk'))
                 )
             )
+        queryset = queryset.select_related('author')
+        queryset = queryset.prefetch_related(
+            Prefetch('tags', 'ingredients'),
         )
         return queryset
 
@@ -126,15 +128,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.request.method in SAFE_METHODS:
             return RecipeReadSerializer
         return RecipeWriteSerializer
-
-    def get_is_favorited(self, obj):
-        return obj.is_favorited
-
-    def get_is_in_shopping_cart(self, obj):
-        return obj.is_in_shopping_cart
-
-    def get_recipe(self, id):
-        return get_object_or_404(Recipe, id=id)
 
     @action(detail=True, methods=['post'],
             permission_classes=(IsAuthenticated,))
@@ -155,28 +148,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def delete_from_shopping_cart(self, request, pk):
         return self.delete_from(ShoppingCart, request.user, pk)
 
-    def create_shopping_list_file(user):
-        purchases = (
-            ShoppingCart.objects
-            .filter(user=user)
-            .select_related('recipe')
-            .prefetch_related('recipe__ingredients')
-        )
-        file = 'shopping-list.txt'
-        shop_cart = dict()
-        for purchase in purchases:
-            for ingredient in purchase.recipe.ingredients.all():
-                point_name = (
-                    f'{ingredient.name} ({ingredient.measurement_unit})'
-                )
-                shop_cart[point_name] = (
-                    shop_cart.get(point_name, 0) + ingredient.amount
-                )
-        with open(file, 'w') as f:
-            for name, amount in shop_cart.items():
-                f.write(f'* {name} - {amount}n')
-        return file
-
     @action(
         detail=False,
         methods=['get'],
@@ -184,9 +155,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def download_shopping_cart(self, request):
         user = request.user
-        purchases = ShoppingCart.objects.filter(user=user)
-        file = self.create_shopping_list_file(purchases)
-        return FileResponse(open(file, 'rb'), as_attachment=True)
+        file = get_shopping_list(user)
+        return FileResponse(
+            file, as_attachment=True, filename='shopping-list.txt'
+        )
 
     def add_to(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
