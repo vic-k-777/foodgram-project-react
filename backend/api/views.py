@@ -1,4 +1,4 @@
-from django.db.models import Count, Exists, OuterRef, Value
+from django.db.models import Exists, OuterRef
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
