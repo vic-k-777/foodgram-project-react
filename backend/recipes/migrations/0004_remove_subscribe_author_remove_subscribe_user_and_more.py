@@ -7,45 +7,63 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('recipes', '0003_alter_favorited_id_alter_ingredient_id_and_more'),
+        ("recipes", "0003_alter_favorited_id_alter_ingredient_id_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='subscribe',
-            name='author',
+            model_name="subscribe",
+            name="author",
         ),
         migrations.RemoveField(
-            model_name='subscribe',
-            name='user',
+            model_name="subscribe",
+            name="user",
         ),
         migrations.AlterField(
-            model_name='recipe',
-            name='cooking_time',
-            field=models.IntegerField(verbose_name='Время приготовления (в минутах)'),
+            model_name="recipe",
+            name="cooking_time",
+            field=models.IntegerField(
+                verbose_name="Время приготовления (в минутах)"
+            ),
         ),
         migrations.AlterField(
-            model_name='recipe',
-            name='image',
-            field=models.ImageField(upload_to='recipe/images/', verbose_name='Картинка, закодированная в Base64'),
+            model_name="recipe",
+            name="image",
+            field=models.ImageField(
+                upload_to="recipe/images/",
+                verbose_name="Картинка, закодированная в Base64",
+            ),
         ),
         migrations.AlterField(
-            model_name='recipe',
-            name='tags',
-            field=models.ManyToManyField(to='recipes.tag', verbose_name='Список id тегов'),
+            model_name="recipe",
+            name="tags",
+            field=models.ManyToManyField(
+                to="recipes.tag", verbose_name="Список id тегов"
+            ),
         ),
         migrations.AlterField(
-            model_name='tag',
-            name='color',
-            field=models.CharField(max_length=7, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^#([a-fA-F0-9]{6})'), message='Поле должно содержать HEX-код выбранного цвета.')], verbose_name='Цветовой HEX-код'),
+            model_name="tag",
+            name="color",
+            field=models.CharField(
+                max_length=7,
+                unique=True,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        re.compile("^#([a-fA-F0-9]{6})"),
+                        message="Поле должно содержать HEX-код выбранного цвета.",
+                    )
+                ],
+                verbose_name="Цветовой HEX-код",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='ingredient',
-            constraint=models.UniqueConstraint(fields=('name', 'measurement_unit'), name='unique ingredient'),
+            model_name="ingredient",
+            constraint=models.UniqueConstraint(
+                fields=("name", "measurement_unit"), name="unique ingredient"
+            ),
         ),
         migrations.DeleteModel(
-            name='Subscribe',
+            name="Subscribe",
         ),
     ]

@@ -6,10 +6,10 @@ from ...models import Ingredient
 
 
 class Command(BaseCommand):
-    help = 'Импорт ингредиентов в из файла в БД'
+    help = "Импорт ингредиентов в из файла в БД"
 
     def handle(self, *args, **options):
-        with open('data/ingredients.csv', encoding='utf-8') as file:
+        with open("data/ingredients.csv", encoding="utf-8") as file:
             file_reader = csv.reader(file)
             for row in file_reader:
                 Ingredient.objects.get_or_create(
