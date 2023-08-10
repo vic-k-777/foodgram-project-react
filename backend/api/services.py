@@ -2,7 +2,6 @@ import io
 from datetime import datetime
 
 from django.db.models.aggregates import Sum
-
 from recipes.models import RecipeIngredient
 
 
