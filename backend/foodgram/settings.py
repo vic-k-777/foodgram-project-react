@@ -14,7 +14,11 @@ CSRF_TRUSTED_ORIGINS = [
 DEBUG = os.getenv("DEBUG", default="True") == "True"
 
 # ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["fgram.dynnamn.ru",
+                 "localhost",
+                 "127.0.0.1",
+                 "84.201.154.26",
+                 "backend"]
 
 # Application definition
 
