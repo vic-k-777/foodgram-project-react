@@ -2,13 +2,10 @@ import base64
 
 from django.core.files.base import ContentFile
 from django.db import transaction
-
 from djoser.serializers import UserCreateSerializer
-from rest_framework import serializers
-from rest_framework.serializers import (BooleanField, IntegerField,
-                                        ModelSerializer, SerializerMethodField,)
-
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
+from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 from users.models import Subscribe, User
 
 
@@ -208,17 +205,25 @@ class RecipeShortSerializer(ModelSerializer):
 
 
 class SubscribeSerializer(CustomUserSerializer):
-    recipe = SerializerMethodField()
-    recipes_count = IntegerField(read_only=True)
-    is_subscribed = BooleanField(read_only=True)
+    recipe = RecipeShortSerializer(many=True, read_only=True)
+    recipes_count = serializers.SerializerMethodField(read_only=True)
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
-    @staticmethod
-    def get_recipes_count(author):
+    def get_recipes_count(self, author):
         return author.recipe.count()
 
-    def get_is_subscribed(self, author):
-        user = self.context["request"].user
-        return bool(author.follower.filter(user=user))
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        return Subscribe.objects.filter(author=obj, user=user).exists()
+
+    def get_recipe(self, obj):
+        request = self.context.get('request')
+        limit = request.GET.get('recipe_limit')
+        recipe = obj.recipe.all()
+        if limit:
+            recipe = recipe[:int(limit)]
+        serializer = RecipeShortSerializer(recipe, many=True, read_only=True)
+        return serializer.data
 
     class Meta:
         model = User
@@ -231,4 +236,10 @@ class SubscribeSerializer(CustomUserSerializer):
             "is_subscribed",
             "recipe",
             "recipes_count",
+        )
+        read_only_fields = (
+            "email",
+            "username",
+            "first_name",
+            "last_name",
         )

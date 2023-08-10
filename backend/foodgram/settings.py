@@ -168,4 +168,6 @@ AUTH_USER_MODEL = "users.User"
 
 EMPTY_VALUE_DISPLAY = "-пусто-"
 
-CORS_ALLOWED_ORIGINS = ["http://localhost:8000", "http://127.0.0.1:8000"]
+CORS_ALLOWED_ORIGINS = ["http://localhost:8000",
+                        "http://127.0.0.1:8000",
+                        "https://fgram.dynnamn.ru"]

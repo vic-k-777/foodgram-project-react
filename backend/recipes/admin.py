@@ -1,8 +1,7 @@
 from django.conf import settings
 from django.contrib import admin
-
 from recipes.models import (Favorited, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag,)
+                            ShoppingCart, Tag)
 from users.models import Subscribe
 
 
