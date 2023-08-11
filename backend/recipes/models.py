@@ -146,7 +146,10 @@ class RecipeIngredient(models.Model):
         verbose_name_plural = "рецепты и ингредиенты"
         constraints = [
             UniqueConstraint(
-                fields=["recipe", "ingredient"], name="recipe unique ingredient"
+                fields=[
+                    "recipe",
+                    "ingredient"
+                ], name="recipe unique ingredient"
             )
         ]
 
