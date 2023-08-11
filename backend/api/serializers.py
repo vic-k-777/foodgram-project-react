@@ -5,9 +5,7 @@ from django.db import transaction
 
 from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer
-from rest_framework.validators import UniqueTogetherValidator
 
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from users.models import Subscribe, User
@@ -142,32 +140,6 @@ class RecipeWriteSerializer(ModelSerializer):
         model = Recipe
         fields = "__all__"
         read_only_fields = ("author",)
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Recipe.objects.all(),
-                fields=['name', 'text', 'cooking_time'],
-                message=('Обязательное поле')
-            ),
-            UniqueTogetherValidator(
-                queryset=Ingredient.objects.all(),
-                fields=('ingredients'),
-                message=('Ингредиенты должны быть уникальными')
-            )
-        ]
-
-    def validate_tags(self, obj):
-        if not obj.get('tags'):
-            raise ValidationError(
-                'Убедитесь, что это значение больше либо равно 1.'
-            )
-        return obj
-
-    def validate_ingredients(self, obj):
-        if not obj.get('ingredients'):
-            raise ValidationError(
-                'Убедитесь, что это значение больше либо равно 1.'
-            )
-        return obj
 
     @transaction.atomic
     def tags_and_ingredients_set(self, recipe, tags, ingredients):
