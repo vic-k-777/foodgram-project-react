@@ -3,7 +3,6 @@ import re
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import UniqueConstraint
-
 from users.models import User
 
 
@@ -80,7 +79,7 @@ class Recipe(models.Model):
         max_length=50,
     )
     image = models.ImageField(
-        upload_to="",
+        upload_to="recipes/",
         verbose_name="Картинка, закодированная в Base64",
     )
     text = models.TextField(
