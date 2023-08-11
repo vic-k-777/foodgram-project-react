@@ -1,13 +1,13 @@
-from django.db.models import Exists, OuterRef
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import exceptions, filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from django.db.models import Exists, OuterRef
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 
 from api.filters import RecipeFilter
 from api.pagination import CustomPagination
@@ -67,9 +67,14 @@ class CustomUserViewSet(UserViewSet):
     @subscribe.mapping.delete
     def unsubscribe(self, request, **kwargs):
         author = self.get_user(kwargs["id"])
-        get_object_or_404(Subscribe, user=request.user, author=author).delete()
+        get_object_or_404(
+            Subscribe,
+            user=request.user,
+            author=author
+        ).delete()
         return Response(
-            {"detail": "Успешная отписка"}, status=status.HTTP_204_NO_CONTENT
+            {"detail": "Успешная отписка"},
+            status=status.HTTP_204_NO_CONTENT
         )
 
 
