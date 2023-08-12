@@ -1,6 +1,6 @@
 import re
 
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core import validators
 from django.db import models
 from django.db.models import UniqueConstraint
 
@@ -20,7 +20,7 @@ class Tag(models.Model):
         max_length=7,
         unique=True,
         validators=[
-            RegexValidator(
+            validators.RegexValidator(
                 re.compile(r"^#([a-fA-F0-9]{6})"),
                 message=("Поле должно содержать HEX-код выбранного цвета."),
             )
@@ -95,8 +95,9 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name="Время приготовления (в минутах)",
+        default=1,
         validators=[
-            MinValueValidator(
+            validators.MinValueValidator(
                 1,
                 message=(
                     "Минимальное время приготовления" "составляет одну минуту."
@@ -135,7 +136,7 @@ class RecipeIngredient(models.Model):
         verbose_name="количество",
         default=1,
         validators=(
-            MinValueValidator(
+            validators.MinValueValidator(
                 1,
                 message="Должен быть выбран хотя бы один ингредиент."
             ),
