@@ -80,7 +80,7 @@ class Recipe(models.Model):
         max_length=50,
     )
     image = models.ImageField(
-        upload_to="recipes/",
+        upload_to="",
         verbose_name="Картинка, закодированная в Base64",
     )
     text = models.TextField(

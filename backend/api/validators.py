@@ -12,7 +12,20 @@ def validate_recipe_name(name):
         )
 
 
-# def validate_cooking_time(self, cooking_time):
-#     if int(cooking_time) < 1:
-#         raise ValidationError("Минимальное время приготовления одну минуту.")
-#     return cooking_time
+def validate_cooking_time(self, cooking_time):
+    if int(cooking_time) < 1:
+        raise ValidationError(
+            "Минимальное время приготовления одну минуту."
+        )
+    return cooking_time
+
+
+def validate_ingredients(self, ingredients):
+    if not ingredients:
+        raise ValidationError("Ингредиенты не должны повторяться.")
+    for ingredient in ingredients:
+        if int(ingredient.get('amount')) < 1:
+            raise ValidationError(
+                "Должен быть выбран хотя бы один ингредиент."
+            )
+    return ingredients
