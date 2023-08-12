@@ -7,7 +7,7 @@ from rest_framework.serializers import ModelSerializer
 from django.core.files.base import ContentFile
 from django.db import transaction
 
-from api.validators import validate_recipe_name
+from api.validators import validate_cooking_time, validate_recipe_name
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from users.models import Subscribe, User
 
@@ -139,6 +139,9 @@ class RecipeWriteSerializer(ModelSerializer):
     name = serializers.CharField(
         max_length=50,
         validators=[validate_recipe_name],
+    )
+    cooking_time = serializers.SerializerMethodField(
+        validators=[validate_cooking_time],
     )
 
     class Meta:
