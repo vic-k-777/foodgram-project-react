@@ -58,7 +58,6 @@ class CustomUserViewSet(UserViewSet):
         )
         return self.get_paginated_response(serializer.data)
 
-
     @action(
         detail=True,
         methods=["post"],
