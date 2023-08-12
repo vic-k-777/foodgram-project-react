@@ -148,6 +148,14 @@ class RecipeWriteSerializer(ModelSerializer):
         max_length=50,
         validators=[validate_recipe_name],
     )
+    cooking_time = serializers.IntegerField(
+        validators=(
+            MinValueValidator(
+                1,
+                message='Минимальное время приготовления 1 минута.'
+            ),
+        )
+    )
 
     class Meta:
         model = Recipe
