@@ -5,9 +5,10 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from django.core.files.base import ContentFile
+from django.core.validators import MinValueValidator
 from django.db import transaction
 
-from api.validators import validate_ingredients, validate_recipe_name
+from api.validators import validate_recipe_name
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from users.models import Subscribe, User
 
@@ -69,7 +70,14 @@ class ShortIngredientSerializer(ModelSerializer):
     """Список ингредиентов для рецепта"""
 
     id = serializers.IntegerField()
-    amount = serializers.DecimalField(max_digits=7, decimal_places=2)
+    amount = serializers.IntegerField(
+        validators=(
+            MinValueValidator(
+                1,
+                message='Количество ингредиента должно быть 1 или более.'
+            ),
+        )
+    )
 
     class Meta:
         model = Ingredient
@@ -81,9 +89,7 @@ class GetIngredientRecipeSerializer(ModelSerializer):
 
     name = serializers.SerializerMethodField()
     measurement_unit = serializers.SerializerMethodField()
-    amount = serializers.SerializerMethodField(validators=[
-        validate_ingredients
-    ],)
+    amount = serializers.SerializerMethodField()
     ingredient = serializers.PrimaryKeyRelatedField(
         source="ingredient.id", read_only=True
     )
