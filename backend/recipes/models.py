@@ -93,7 +93,7 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(
         Tag, verbose_name="Список id тегов", related_name="recipes"
     )
-    cooking_time = models.IntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         verbose_name="Время приготовления (в минутах)",
         validators=[
             MinValueValidator(
