@@ -1,14 +1,12 @@
 import base64
 
-from djoser.serializers import UserCreateSerializer
-from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer
-
+from api.validators import validate_recipe_name
 from django.core.files.base import ContentFile
 from django.db import transaction
-
-from api.validators import validate_cooking_time, validate_recipe_name
+from djoser.serializers import UserCreateSerializer
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
+from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 from users.models import Subscribe, User
 
 
@@ -140,9 +138,9 @@ class RecipeWriteSerializer(ModelSerializer):
         max_length=50,
         validators=[validate_recipe_name],
     )
-    cooking_time = serializers.SerializerMethodField(
-        validators=[validate_cooking_time],
-    )
+    # cooking_time = serializers.SerializerMethodField(
+    #     validators=[validate_cooking_time],
+    # )
 
     class Meta:
         model = Recipe
