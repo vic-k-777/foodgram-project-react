@@ -1,3 +1,5 @@
+import re
+
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import exceptions, filters, status, viewsets
@@ -5,6 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from django.core.validators import ValidationError
 from django.db.models import Exists, OuterRef
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -189,3 +192,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             {"errors": "Рецепт уже удален!"},
             status=status.HTTP_400_BAD_REQUEST
         )
+
+    def validate_recipe_name(name):
+        if re.match(r'^[0-9!@#$%^&*()_+|~\-={}[\]:";<>,.?/]*$', name):
+            raise ValidationError(
+                "Название рецепта не может состоять только из цифр и знаков."
+            )
