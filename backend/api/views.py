@@ -9,7 +9,7 @@ from django.db.models import Exists, OuterRef
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
-from api.filters import RecipeFilter
+from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import CustomPagination
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (CustomUserSerializer, IngredientSerializer,
@@ -31,17 +31,6 @@ class CustomUserViewSet(UserViewSet):
 
     def get_user(self, id):
         return get_object_or_404(User, id=id)
-
-    # def get_queryset(self):
-    #     """Получение запроса списка пользователей."""
-    #     return User.objects.annotate(
-    #         is_subscribed=Exists(
-    #             self.request.user.follower.filter(
-    #                 author=OuterRef('id'))
-    #         )).prefetch_related(
-    #             'follower', 'following'
-    #     ) if self.request.user.is_authenticated else User.objects.annotate(
-    #         is_subscribed=Value(False))
 
     @action(detail=False,
             methods=["get"],
@@ -97,6 +86,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (filters.SearchFilter,)
+    filterset_class = IngredientFilter
     pagination_class = None
     search_fields = ("name",)
 
