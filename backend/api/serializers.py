@@ -5,7 +5,6 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from django.core.files.base import ContentFile
-from django.core.validators import MinValueValidator
 from django.db import transaction
 
 from api.validators import validate_recipe_name
