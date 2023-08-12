@@ -7,7 +7,7 @@ from rest_framework.serializers import ModelSerializer
 from django.core.files.base import ContentFile
 from django.db import transaction
 
-from api.validators import validate_recipe_name
+from api.validators import validate_ingredients, validate_recipe_name
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from users.models import Subscribe, User
 
@@ -81,7 +81,9 @@ class GetIngredientRecipeSerializer(ModelSerializer):
 
     name = serializers.SerializerMethodField()
     measurement_unit = serializers.SerializerMethodField()
-    amount = serializers.SerializerMethodField()
+    amount = serializers.SerializerMethodField(validators=[
+        validate_ingredients
+    ],)
     ingredient = serializers.PrimaryKeyRelatedField(
         source="ingredient.id", read_only=True
     )
@@ -147,27 +149,27 @@ class RecipeWriteSerializer(ModelSerializer):
         fields = "__all__"
         read_only_fields = ("author",)
 
-    def validate_ingredients(self, ingredients):
-        """Валидация ингредиентов."""
-        ingredients_list = [ingredient['id'] for ingredient in ingredients]
-        if any(ingredient.get('amount') < 1 for ingredient in ingredients):
-            raise serializers.ValidationError(
-                'Должен быть выбран хотя бы один ингредиент.'
-            )
-        for ingredient in ingredients_list:
-            if ingredients_list.count(ingredient) > 1:
-                raise serializers.ValidationError(
-                    'Одинаковые ингредиенты добавлять нельзя.'
-                )
-        return ingredients
+    # def validate_ingredients(self, ingredients):
+    #     """Валидация ингредиентов."""
+    #     ingredients_list = [ingredient['id'] for ingredient in ingredients]
+    #     if any(ingredient.get('amount') < 1 for ingredient in ingredients):
+    #         raise serializers.ValidationError(
+    #             'Должен быть выбран хотя бы один ингредиент.'
+    #         )
+    #     for ingredient in ingredients_list:
+    #         if ingredients_list.count(ingredient) > 1:
+    #             raise serializers.ValidationError(
+    #                 'Одинаковые ингредиенты добавлять нельзя.'
+    #             )
+    #     return ingredients
 
-    def validate_cooking_time(self, cooking_time):
-        """Валидация времени приготовления."""
-        if cooking_time < 1:
-            raise serializers.ValidationError(
-                'Время приготовления должно быть не меньше 1 минуты.'
-            )
-        return cooking_time
+    # def validate_cooking_time(self, cooking_time):
+    #     """Валидация времени приготовления."""
+    #     if cooking_time < 1:
+    #         raise serializers.ValidationError(
+    #             'Время приготовления должно быть не меньше 1 минуты.'
+    #         )
+    #     return cooking_time
 
     @transaction.atomic
     def tags_and_ingredients_set(self, recipe, tags, ingredients):
