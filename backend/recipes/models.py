@@ -78,8 +78,6 @@ class Recipe(models.Model):
     name = models.CharField(
         verbose_name="Название",
         max_length=50,
-        validators=(
-        )
     )
     image = models.ImageField(
         upload_to="recipes/",

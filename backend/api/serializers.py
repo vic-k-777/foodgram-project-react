@@ -5,6 +5,7 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from django.core.files.base import ContentFile
+from django.core.validators import MinValueValidator
 from django.db import transaction
 
 from api.validators import validate_recipe_name
@@ -139,6 +140,17 @@ class RecipeWriteSerializer(ModelSerializer):
     name = serializers.CharField(
         max_length=50,
         validators=[validate_recipe_name],
+    )
+    cooking_time = serializers.CharField(
+        max_lenght=None,
+        validators=[
+            MinValueValidator(
+                1,
+                message=(
+                    "Минимальное время приготовления" "составляет одну минуту."
+                ),
+            ),
+        ],
     )
 
     class Meta:
