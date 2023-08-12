@@ -141,16 +141,6 @@ class RecipeWriteSerializer(ModelSerializer):
         max_length=50,
         validators=[validate_recipe_name],
     )
-    cooking_time = serializers.CharField(
-        validators=[
-            MinValueValidator(
-                1,
-                message=(
-                    "Минимальное время приготовления" "составляет одну минуту."
-                ),
-            ),
-        ],
-    )
 
     class Meta:
         model = Recipe
