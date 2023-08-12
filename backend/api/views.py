@@ -1,3 +1,5 @@
+from multiprocessing import Value
+
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import exceptions, filters, status, viewsets
@@ -32,23 +34,30 @@ class CustomUserViewSet(UserViewSet):
     def get_user(self, id):
         return get_object_or_404(User, id=id)
 
+    def get_queryset(self):
+        """Получение запроса списка пользователей."""
+        return User.objects.annotate(
+            is_subscribed=Exists(
+                self.request.user.follower.filter(
+                    author=OuterRef('id'))
+            )).prefetch_related(
+                'follower', 'following'
+        ) if self.request.user.is_authenticated else User.objects.annotate(
+            is_subscribed=Value(False))
+
     @action(detail=False,
             methods=["get"],
             )
     def subscriptions(self, request):
-        # queryset = User.objects.filter(following__user=request.user)
-        # pages = self.paginate_queryset(queryset)
-        # serializer = SubscribeSerializer(
-        #     queryset, many=True, context={"request": request}
-        # )
-        # return Response(serializer.data)
-        user = request.user
-        queryset = Subscribe.objects.filter(user=user)
-        page = self.paginate_queryset(queryset)
+        queryset = User.objects.filter(following__user=request.user)
+        pages = self.paginate_queryset(queryset)
         serializer = SubscribeSerializer(
-            page, many=True, context={'request': request}
+            pages,
+            many=True,
+            context={'request': request}
         )
         return self.get_paginated_response(serializer.data)
+
 
     @action(
         detail=True,
