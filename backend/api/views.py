@@ -1,6 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from rest_framework import exceptions, filters, status, viewsets
+from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -85,7 +85,8 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = (filters.SearchFilter,)
+    # filter_backends = (filters.SearchFilter,)
+    filter_backends = (DjangoFilterBackend, )
     filterset_class = IngredientFilter
     pagination_class = None
     search_fields = ("name",)
