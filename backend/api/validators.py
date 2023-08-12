@@ -10,4 +10,4 @@ def validate_recipe_name(name):
     ):
         raise ValidationError(
             "Название рецепта не может состоять только из цифр и знаков."
-            )
+        )
