@@ -136,7 +136,6 @@ class RecipeWriteSerializer(ModelSerializer):
     author = CustomUserSerializer(read_only=True)
     ingredients = ShortIngredientSerializer(
         many=True,
-        source='recipeingredient',
     )
     image = Base64ImageField(max_length=None, use_url=True)
     name = serializers.CharField(
