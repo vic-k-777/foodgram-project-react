@@ -1,13 +1,12 @@
 import base64
-
-from djoser.serializers import UserCreateSerializer
-from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer
+import re
 
 from django.core.files.base import ContentFile
 from django.db import transaction
-
+from djoser.serializers import UserCreateSerializer
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
+from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 from users.models import Subscribe, User
 
 
@@ -135,6 +134,15 @@ class RecipeWriteSerializer(ModelSerializer):
         many=True,
     )
     image = Base64ImageField(max_length=None, use_url=True)
+    name = serializers.CharField(
+        max_length=50,
+        validators=[
+            serializers.UniqueValidator(queryset=Recipe.objects.all()),
+            lambda x: re.match(
+                r'^[0-9!@#$%^&*()_+|~\-=`{}[\]:";<>,.?/]*$', x
+            ) is None
+        ]
+    )
 
     class Meta:
         model = Recipe
@@ -193,6 +201,13 @@ class RecipeWriteSerializer(ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         return data
+
+    def validate_name(self, value):
+        if re.match(r'^[0-9!@#$%^&*()_+|~\-=`{}[\]:";<>,.?/]*$', value):
+            raise serializers.ValidationError(
+                "Название рецепта не может состоять только из цифр и знаков."
+            )
+        return value
 
 
 class RecipeShortSerializer(ModelSerializer):
