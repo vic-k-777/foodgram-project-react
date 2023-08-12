@@ -124,7 +124,6 @@ class RecipeReadSerializer(ModelSerializer):
         return serializer.data
 
 
-
 class RecipeWriteSerializer(ModelSerializer):
     """Сериализатор класса записи рецепта"""
 
