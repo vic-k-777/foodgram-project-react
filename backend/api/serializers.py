@@ -1,7 +1,7 @@
 import base64
 
 from djoser.serializers import UserCreateSerializer
-from rest_framework import exceptions, serializers
+from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from django.core.files.base import ContentFile
