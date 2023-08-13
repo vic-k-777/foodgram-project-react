@@ -2,11 +2,12 @@ import base64
 
 from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, ValidationError
 
 from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 
 from api.validators import validate_ingredients, validate_recipe_name
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
@@ -164,19 +165,13 @@ class RecipeWriteSerializer(ModelSerializer):
 
     def validate_duplicate_ingredient(self, data):
         ingredients = data['ingredients']
-        ingredients_set = set()
-        if not ingredients:
-            raise serializers.ValidationError({
-                'ingredients': 'Ингредиенты обязателены для заполнения!'
-            })
-        for ingredient in ingredients:
-            ingredient_id = ingredient['id']
-            if ingredient_id in ingredients_set:
-                raise serializers.ValidationError({
-                    'ingredients': f'Ингредиент {ingredient} существует,'
-                                   ' измените ингредиент!'
-                })
-            return data
+        ingredient_list = [
+            get_object_or_404(Ingredient, id=item['id'])
+            for item in ingredients
+        ]
+        if len(ingredient_list) < 1:
+            raise ValidationError("Ингредиенты не должны дублироваться")
+        return data
 
     @transaction.atomic
     def tags_and_ingredients_set(self, recipe, tags, ingredients):
