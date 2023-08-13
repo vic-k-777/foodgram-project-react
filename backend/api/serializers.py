@@ -162,28 +162,6 @@ class RecipeWriteSerializer(ModelSerializer):
         fields = "__all__"
         read_only_fields = ("author",)
 
-    # def validate_ingredients(self, ingredients):
-    #     """Валидация ингредиентов."""
-    #     ingredients_list = [ingredient['id'] for ingredient in ingredients]
-    #     if any(ingredient.get('amount') < 1 for ingredient in ingredients):
-    #         raise serializers.ValidationError(
-    #             'Должен быть выбран хотя бы один ингредиент.'
-    #         )
-    #     for ingredient in ingredients_list:
-    #         if ingredients_list.count(ingredient) > 1:
-    #             raise serializers.ValidationError(
-    #                 'Одинаковые ингредиенты добавлять нельзя.'
-    #             )
-    #     return ingredients
-
-    # def validate_cooking_time(self, cooking_time):
-    #     """Валидация времени приготовления."""
-    #     if cooking_time < 1:
-    #         raise serializers.ValidationError(
-    #             'Время приготовления должно быть не меньше 1 минуты.'
-    #         )
-    #     return cooking_time
-
     @transaction.atomic
     def tags_and_ingredients_set(self, recipe, tags, ingredients):
         recipe.tags.set(tags)
