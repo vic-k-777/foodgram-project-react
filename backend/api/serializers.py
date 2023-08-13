@@ -162,6 +162,22 @@ class RecipeWriteSerializer(ModelSerializer):
         fields = "__all__"
         read_only_fields = ("author",)
 
+    def validate_duplicate_ingredient(self, data):
+        ingredients = data['ingredients']
+        ingredients_set = set()
+        if not ingredients:
+            raise serializers.ValidationError({
+                'ingredients': 'Ингредиенты обязателены для заполнения!'
+            })
+        for ingredient in ingredients:
+            ingredient_id = ingredient['id']
+            if ingredient_id in ingredients_set:
+                raise serializers.ValidationError({
+                    'ingredients': f'Ингредиент {ingredient} существует,'
+                                   ' измените ингредиент!'
+                })
+            return data
+
     @transaction.atomic
     def tags_and_ingredients_set(self, recipe, tags, ingredients):
         recipe.tags.set(tags)
