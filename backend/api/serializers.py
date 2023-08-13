@@ -2,14 +2,13 @@ import base64
 
 from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer, ValidationError
+from rest_framework.serializers import ModelSerializer
 
 from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
 from django.db import transaction
-from django.shortcuts import get_object_or_404
 
-from api.validators import validate_ingredients, validate_recipe_name
+from api.validators import validate_recipe_name
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from users.models import Subscribe, User
 
@@ -147,7 +146,7 @@ class RecipeWriteSerializer(ModelSerializer):
     image = Base64ImageField(max_length=None, use_url=True)
     name = serializers.CharField(
         max_length=50,
-        validators=[validate_recipe_name, validate_ingredients],
+        validators=[validate_recipe_name],
     )
     cooking_time = serializers.IntegerField(
         validators=(
@@ -163,15 +162,15 @@ class RecipeWriteSerializer(ModelSerializer):
         fields = "__all__"
         read_only_fields = ("author",)
 
-    def validate_duplicate_ingredient(self, ingredients):
-        ingredients = ingredients['ingredients']
-        ingredient_list = [
-            get_object_or_404(Ingredient, id=item['id'])
-            for item in ingredients
-        ]
-        if len(ingredient_list) < 1:
-            raise ValidationError("Ингредиенты не должны дублироваться")
-
+    def validate_ingredients(self, ingredients):
+        ingredient_names = set()
+        for ingredient in ingredients:
+            ingredient_name = ingredient["name"]
+            if ingredient_name in ingredient_names:
+                raise serializers.ValidationError(
+                    "Нельзя дублировать ингредиенты"
+                )
+            ingredient_names.add(ingredient_name)
         return ingredients
 
     @transaction.atomic
