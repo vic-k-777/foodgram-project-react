@@ -32,34 +32,34 @@ class CustomUserViewSet(UserViewSet):
     def get_user(self, id):
         return get_object_or_404(User, id=id)
 
-    # @action(detail=False,
-    #         methods=["get"],
-    #         )
-    # def subscriptions(self, request):
-    #     queryset = User.objects.filter(following__user=request.user)
-    #     pages = self.paginate_queryset(queryset)
-    #     serializer = SubscribeSerializer(
-    #         pages,
-    #         many=True,
-    #         context={'request': request}
-    #     )
-    #     return self.get_paginated_response(serializer.data)
-
-    @action(
-        detail=False,
-        methods=["get"],
-        serializer_class=SubscribeSerializer,
-        permission_classes=(IsAuthenticated, )
-    )
+    @action(detail=False,
+            methods=["get"],
+            )
     def subscriptions(self, request):
-        user = self.request.user
-        user_followers = user.follower.all()
-        authors = [item.author.id for item in user_followers]
-        queryset = User.objects.filter(pk__in=authors)
-        paginated_queryset = self.paginate_queryset(queryset)
-        serializer = SubscribeSerializer(paginated_queryset, many=True)
-
+        queryset = User.objects.filter(following__user=request.user)
+        pages = self.paginate_queryset(queryset)
+        serializer = SubscribeSerializer(
+            pages,
+            many=True,
+            context={'request': request}
+        )
         return self.get_paginated_response(serializer.data)
+
+    # @action(
+    #     detail=False,
+    #     methods=["get"],
+    #     serializer_class=SubscribeSerializer,
+    #     permission_classes=(IsAuthenticated, )
+    # )
+    # def subscriptions(self, request):
+    #     user = self.request.user
+    #     user_followers = user.follower.all()
+    #     authors = [item.author.id for item in user_followers]
+    #     queryset = User.objects.filter(pk__in=authors)
+    #     paginated_queryset = self.paginate_queryset(queryset)
+    #     serializer = SubscribeSerializer(paginated_queryset, many=True)
+
+    #     return self.get_paginated_response(serializer.data)
 
     @action(
         detail=True,

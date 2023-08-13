@@ -235,38 +235,38 @@ class SubscribeSerializer(CustomUserSerializer):
     def get_recipes_count(self, author):
         return author.recipe.count()
 
-    # def get_is_subscribed(self, obj):
-    #     user = self.context['request'].user
-    #     return Subscribe.objects.filter(author=obj, user=user).exists()
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        return Subscribe.objects.filter(author=obj, user=user).exists()
 
-    # def get_recipe(self, obj):
-    #     request = self.context.get('request')
-    #     limit = request.GET.get('recipe_limit')
-    #     recipe = obj.recipe.all()
-    #     if limit:
-    #         recipe = recipe[:int(limit)]
-    #     serializer = RecipeShortSerializer(recipe, many=True, read_only=True)
-    #     return serializer.data
+    def get_recipe(self, obj):
+        request = self.context.get('request')
+        limit = request.GET.get('recipe_limit')
+        recipe = obj.recipe.all()
+        if limit:
+            recipe = recipe[:int(limit)]
+        serializer = RecipeShortSerializer(recipe, many=True, read_only=True)
+        return serializer.data
 
-    def get_RecipeShortSerializer(self):
-        from api.serializers import RecipeShortSerializer
+    # def get_RecipeShortSerializer(self):
+    #     from api.serializers import RecipeShortSerializer
 
-        return RecipeShortSerializer
+    #     return RecipeShortSerializer
 
-    def get_recipes(self, obj):
-        author_recipe = Recipe.objects.filter(author=obj)
+    # def get_recipes(self, obj):
+    #     author_recipe = Recipe.objects.filter(author=obj)
 
-        if 'recipe_limit' in self.context.get('request').GET:
-            recipe_limit = self.context.get('request').GET['recipe_limit']
-            author_recipe = author_recipe[:int(recipe_limit)]
+    #     if 'recipe_limit' in self.context.get('request').GET:
+    #         recipe_limit = self.context.get('request').GET['recipe_limit']
+    #         author_recipe = author_recipe[:int(recipe_limit)]
 
-        if author_recipe:
-            serializer = self.get_RecipeShortSerializer()(
-                author_recipe,
-                context={'request': self.context.get('request')},
-                many=True
-            )
-            return serializer.data
+    #     if author_recipe:
+    #         serializer = self.get_RecipeShortSerializer()(
+    #             author_recipe,
+    #             context={'request': self.context.get('request')},
+    #             many=True
+    #         )
+    #         return serializer.data
 
         return []
 
