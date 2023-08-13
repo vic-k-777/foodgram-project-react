@@ -162,21 +162,6 @@ class RecipeWriteSerializer(ModelSerializer):
         fields = "__all__"
         read_only_fields = ("author",)
 
-    def validate_ingredients(self, value):
-        if not value:
-            raise exceptions.ValidationError(
-                'Нужно добавить хотя бы один ингредиент.'
-            )
-
-        ingredients = [item['id'] for item in value]
-        for ingredient in ingredients:
-            if ingredients.count(ingredient) > 1:
-                raise exceptions.ValidationError(
-                    'У рецепта не может быть два одинаковых ингредиента.'
-                )
-
-        return value
-
     @transaction.atomic
     def tags_and_ingredients_set(self, recipe, tags, ingredients):
         recipe.tags.set(tags)
