@@ -1,15 +1,13 @@
 import base64
 
-from djoser.serializers import UserCreateSerializer
-from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer
-
+from api.validators import validate_recipe_name
 from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
 from django.db import transaction
-
-from api.validators import validate_recipe_name
+from djoser.serializers import UserCreateSerializer
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
+from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 from users.models import Subscribe, User
 
 
@@ -165,7 +163,7 @@ class RecipeWriteSerializer(ModelSerializer):
     def validate_ingredients(self, ingredients):
         ingredient_names = set()
         for ingredient in ingredients:
-            ingredient_name = ingredient['name']
+            ingredient_name = ingredient['ingredients']
             if ingredient_name in ingredient_names:
                 raise serializers.ValidationError(
                     "Вы пытаетесь добавить ингредиент '{}' повторно!".
