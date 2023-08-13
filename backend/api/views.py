@@ -47,7 +47,7 @@ class CustomUserViewSet(UserViewSet):
 
     @action(
         detail=False,
-        methods=('get',),
+        methods=["get"],
         serializer_class=SubscribeSerializer,
         permission_classes=(IsAuthenticated, )
     )
@@ -57,7 +57,7 @@ class CustomUserViewSet(UserViewSet):
         authors = [item.author.id for item in user_followers]
         queryset = User.objects.filter(pk__in=authors)
         paginated_queryset = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(paginated_queryset, many=True)
+        serializer = SubscribeSerializer(paginated_queryset, many=True)
 
         return self.get_paginated_response(serializer.data)
 
