@@ -8,7 +8,7 @@ from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
 from django.db import transaction
 
-from api.validators import validate_recipe_name
+from api.validators import validate_ingredients, validate_recipe_name
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from users.models import Subscribe, User
 
@@ -146,7 +146,7 @@ class RecipeWriteSerializer(ModelSerializer):
     image = Base64ImageField(max_length=None, use_url=True)
     name = serializers.CharField(
         max_length=50,
-        validators=[validate_recipe_name],
+        validators=[validate_recipe_name, validate_ingredients],
     )
     cooking_time = serializers.IntegerField(
         validators=(
