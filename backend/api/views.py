@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from django.db.models import Exists, OuterRef
+from django.db.models.expressions import Value
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
@@ -32,17 +33,29 @@ class CustomUserViewSet(UserViewSet):
     def get_user(self, id):
         return get_object_or_404(User, id=id)
 
+    def get_queryset(self):
+        """Получение запроса списка пользователей."""
+        return User.objects.annotate(
+            is_subscribed=Exists(
+                self.request.user.follower.filter(
+                    author=OuterRef('id'))
+            )).prefetch_related(
+                'follower', 'following'
+        ) if self.request.user.is_authenticated else User.objects.annotate(
+            is_subscribed=Value(False))
+
     @action(
+        methods=['GET'],
         detail=False,
-        permission_classes=(IsAuthenticated, )
+        permission_classes=(IsAuthenticated,)
     )
     def subscriptions(self, request):
-        queryset = Subscribe.objects.filter(user=request.user)
-        pages = self.paginate_queryset(queryset)
+        """Получение подписок пользователя."""
+        user = request.user
+        queryset = Subscribe.objects.filter(user=user)
+        page = self.paginate_queryset(queryset)
         serializer = SubscribeSerializer(
-            pages,
-            many=True,
-            context={'request': request}
+            page, many=True, context={'request': request}
         )
         return self.get_paginated_response(serializer.data)
 
@@ -50,9 +63,9 @@ class CustomUserViewSet(UserViewSet):
     #         methods=["get"],
     #         )
     # def subscriptions(self, request):
-    #     queryset = User.objects.filter(following__user=request.user)
-    #     pages = self.paginate_queryset(queryset)
-    #     serializer = SubscribeSerializer(
+    #     queryset = User.objects.filter(following__user=request.user)  # получаем список подписок юзера
+    #     pages = self.paginate_queryset(queryset)  # пропускаем список через пагинатор
+    #     serializer = SubscribeSerializer(    # передаём в сериализатор
     #         pages,
     #         many=True,
     #         context={'request': request}
