@@ -1,13 +1,15 @@
 import base64
 
-from api.validators import validate_recipe_name
+from djoser.serializers import UserCreateSerializer
+from rest_framework import exceptions, serializers
+from rest_framework.serializers import ModelSerializer
+
 from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
 from django.db import transaction
-from djoser.serializers import UserCreateSerializer
+
+from api.validators import validate_recipe_name
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
-from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer
 from users.models import Subscribe, User
 
 
@@ -160,17 +162,20 @@ class RecipeWriteSerializer(ModelSerializer):
         fields = "__all__"
         read_only_fields = ("author",)
 
-    def validate_ingredients(self, ingredients):
-        ingredient_names = set()
+    def validate_ingredients(self, value):
+        if not value:
+            raise exceptions.ValidationError(
+                'Нужно добавить хотя бы один ингредиент.'
+            )
+
+        ingredients = [item['id'] for item in value]
         for ingredient in ingredients:
-            ingredient_name = ingredient['ingredients']
-            if ingredient_name in ingredient_names:
-                raise serializers.ValidationError(
-                    "Вы пытаетесь добавить ингредиент '{}' повторно!".
-                    format(ingredient_name)
+            if ingredients.count(ingredient) > 1:
+                raise exceptions.ValidationError(
+                    'У рецепта не может быть два одинаковых ингредиента.'
                 )
-            ingredient_names.add(ingredient_name)
-        return ingredients
+
+        return value
 
     @transaction.atomic
     def tags_and_ingredients_set(self, recipe, tags, ingredients):
