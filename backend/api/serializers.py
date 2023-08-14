@@ -142,7 +142,6 @@ class RecipeWriteSerializer(ModelSerializer):
     author = CustomUserSerializer(read_only=True)
     ingredients = ShortIngredientSerializer(
         many=True,
-        validators=[]
     )
     image = Base64ImageField(max_length=None, use_url=True)
     name = serializers.CharField(
@@ -170,7 +169,6 @@ class RecipeWriteSerializer(ModelSerializer):
             ingredient_id = item['id']
             if ingredient_id in ingredient_ids:
                 raise serializers.ValidationError(
-                    # {'ingredients': 'Ингредиенты повторять нельзя.'}
                     'Ингредиенты повторять нельзя.'
                 )
             ingredient_ids.add(ingredient_id)
