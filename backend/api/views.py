@@ -42,7 +42,7 @@ class CustomUserViewSet(UserViewSet):
             many=True,
             context={'request': request}
         )
-        return self.gt_paginate_queryset(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
     # третий вариант  (итог-белый фон)  @action(
     #     detail=False,
