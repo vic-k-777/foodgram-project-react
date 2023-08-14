@@ -33,8 +33,7 @@ class CustomUserViewSet(UserViewSet):
         return get_object_or_404(User, id=id)
 
     @action(detail=False,
-            methods=["get"],
-            )
+            methods=["get"],)
     def subscriptions(self, request):
         queryset = User.objects.filter(following__user=request.user)  # получаем список подписок юзера
         pages = self.paginate_queryset(queryset)  # пропускаем список через пагинатор
@@ -43,7 +42,7 @@ class CustomUserViewSet(UserViewSet):
             many=True,
             context={'request': request}
         )
-        return self.get_paginated_response(serializer.data)
+        return self.paginated_response(serializer.data)
 
     # второй вариант    @action(
     #     detail=False,
