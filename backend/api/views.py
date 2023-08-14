@@ -42,7 +42,7 @@ class CustomUserViewSet(UserViewSet):
             many=True,
             context={'request': request}
         )
-        return self.paginated_response(serializer.data)
+        return serializer.data
 
     # второй вариант    @action(
     #     detail=False,
