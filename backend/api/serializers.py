@@ -164,7 +164,9 @@ class RecipeWriteSerializer(ModelSerializer):
 
     def validate(self, data):
         ingredients = data.get('ingredients')
-        if len(ingredients) != len(set([item['id'] for item in ingredients])):
+        if len(ingredients) != len(
+            set([item['ingredients'] for item in ingredients])
+        ):
             raise serializers.ValidationError(
                 'Дублировать ингредиенты нельзя.'
             )
