@@ -70,14 +70,14 @@ class ShortIngredientSerializer(ModelSerializer):
     """Список ингредиентов для рецепта"""
 
     id = serializers.IntegerField()
-    # amount = serializers.IntegerField(
-    #     validators=(
-    #         MinValueValidator(
-    #             1,
-    #             message='Количество ингредиента должно быть 1 или более.'
-    #         ),
-    #     )
-    # )
+    amount = serializers.IntegerField(
+        validators=(
+            MinValueValidator(
+                1,
+                message='Количество ингредиента должно быть 1 или более.'
+            ),
+        )
+    )
 
     class Meta:
         model = Ingredient
