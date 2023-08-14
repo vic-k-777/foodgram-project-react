@@ -234,24 +234,24 @@ class RecipeShortSerializer(ModelSerializer):
 
 
 class SubscribeSerializer(CustomUserSerializer):
-    recipe = RecipeShortSerializer(many=True, read_only=True)
+    recipes = RecipeShortSerializer(many=True, read_only=True)
     recipes_count = serializers.SerializerMethodField(read_only=True)
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     def get_recipes_count(self, author):
-        return author.recipe.count()
+        return author.recipes.count()
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
         return Subscribe.objects.filter(author=obj, user=user).exists()
 
-    def get_recipe(self, obj):
+    def get_recipes(self, obj):
         request = self.context.get('request')
-        limit = request.GET.get('recipe_limit')
-        recipe = obj.recipe.all()
+        limit = request.GET.get('recipes_limit')
+        recipes = obj.recipes.all()
         if limit:
-            recipe = recipe[:int(limit)]
-        serializer = RecipeShortSerializer(recipe, many=True, read_only=True)
+            recipes = recipes[:int(limit)]
+        serializer = RecipeShortSerializer(recipes, many=True, read_only=True)
         return serializer.data
 
     class Meta:
@@ -263,7 +263,7 @@ class SubscribeSerializer(CustomUserSerializer):
             "first_name",
             "last_name",
             "is_subscribed",
-            "recipe",
+            "recipes",
             "recipes_count",
         )
         read_only_fields = (
