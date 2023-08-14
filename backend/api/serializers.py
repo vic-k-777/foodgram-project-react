@@ -301,9 +301,15 @@ class SubscribeSerializer(CustomUserSerializer):
 
     class Meta:
         model = User
-        fields = CustomUserSerializer.Meta.fields + (
-            'recipe',
-            'recipes_count'
+        fields = (
+            "id",
+            "email",
+            "username",
+            "first_name",
+            "last_name",
+            "is_subscribed",
+            "recipe",
+            "recipes_count",
         )
         read_only_fields = (
             'email', 'username', 'first_name', 'last_name', 'password'
