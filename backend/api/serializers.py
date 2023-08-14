@@ -162,16 +162,17 @@ class RecipeWriteSerializer(ModelSerializer):
         fields = "__all__"
         read_only_fields = ("author",)
 
-    def validate(self, data):
-        list_ingr = [item['ingredient'] for item in data['ingredients']]
-        all_ingredients, distinct_ingredients = (
-            len(list_ingr), len(set(list_ingr)))
-
-        if all_ingredients != distinct_ingredients:
-            raise serializers.ValidationError(
-                {'error': 'Ингредиенты дублировать нельзя.'}
-            )
-        return data
+    def validate_ingredients(self, value):
+        ingredients = value
+        ingredient_ids = set()
+        for item in ingredients:
+            ingredient_id = item['id']
+            if ingredient_id in ingredient_ids:
+                raise serializers.ValidationError(
+                    {'ingredients': 'Ингредиенты повторять нельзя.'}
+                )
+            ingredient_ids.add(ingredient_id)
+        return value
 
     @transaction.atomic
     def tags_and_ingredients_set(self, recipe, tags, ingredients):
