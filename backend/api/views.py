@@ -32,15 +32,15 @@ class CustomUserViewSet(UserViewSet):
     def get_user(self, id):
         return get_object_or_404(User, id=id)
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False,
+            methods=["get"],)
     def subscriptions(self, request):
         queryset = User.objects.filter(following__user=request.user)
+        pages = self.paginate_queryset(queryset)
         serializer = SubscribeSerializer(
-            queryset,
-            many=True,
-            context={"request": request}
+            pages, many=True, context={"request": request}
         )
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
     @action(
         detail=True,
