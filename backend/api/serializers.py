@@ -162,31 +162,6 @@ class RecipeWriteSerializer(ModelSerializer):
         fields = "__all__"
         read_only_fields = ("author",)
 
-    # def validate_ingredients(self, ingredients):
-    #     ingredient_names = set()
-    #     for ingredient in ingredients:
-    #         ingredient_name = ingredient["recipe_ingredient"]
-    #         if ingredient_name in ingredient_names:
-    #             raise serializers.ValidationError(
-    #                 "Нельзя дублировать ингредиенты"
-    #             )
-    #         ingredient_names.add(ingredient_name)
-    #     return ingredients
-
-    def validate(self, data):
-        ingredients_list = []
-        for ingredient in data.get("recipe_ingredient"):
-            if ingredient.get("amount") <= 0:
-                raise serializers.ValidationError(
-                    "Нужно БОЛЬШЕ ингредиентов!" "Добавь ингредиенты."
-                )
-            ingredients_list.append(ingredient.get("id"))
-        if len(set(ingredients_list)) != len(ingredients_list):
-            raise serializers.ValidationError(
-                "Нельзя добавлять одинаковые ингредиенты!"
-            )
-        return super().validate(data)
-
     @transaction.atomic
     def tags_and_ingredients_set(self, recipe, tags, ingredients):
         recipe.tags.set(tags)
@@ -272,44 +247,6 @@ class SubscribeSerializer(CustomUserSerializer):
             recipe = recipe[:int(limit)]
         serializer = RecipeShortSerializer(recipe, many=True, read_only=True)
         return serializer.data
-
-    # def get_recipe(self, obj):   # третий вариант (итог-белый фон)
-    #     request = self.context.get("request")
-    #     limit = request.GET.get("recipe_limit")
-    #     recipe = obj.recipe.all()
-    #     if limit:
-    #         recipe = recipe[: int(limit)]
-    #     serializer = RecipeShortSerializer(recipe, many=True, read_only=True)
-    #     return serializer.data
-
-        # def get_is_subscribed(self, obj):   # третий вариант
-    #     sub_user = self.context.get("request").user
-    #     return (
-    #         sub_user.is_authenticated
-    #         and Subscribe.objects.filter(user=sub_user, author=obj).exists()
-    #     )
-
-    # def get_RecipeShortSerializer(self):         # второй вариант (итог-белый фон)
-    #     from api.serializers import RecipeShortSerializer
-
-    #     return RecipeShortSerializer
-
-    # def get_recipes(self, obj):
-    #     author_recipe = Recipe.objects.filter(author=obj)
-
-    #     if 'recipe_limit' in self.context.get('request').GET:
-    #         recipe_limit = self.context.get('request').GET['recipe_limit']
-    #         author_recipe = author_recipe[:int(recipe_limit)]
-
-    #     if author_recipe:
-    #         serializer = self.get_RecipeShortSerializer()(
-    #             author_recipe,
-    #             context={'request': self.context.get('request')},
-    #             many=True
-    #         )
-    #         return serializer.data
-
-        return []
 
     class Meta:
         model = User
