@@ -20,54 +20,27 @@ from api.services import get_shopping_list
 from recipes.models import Favorited, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Subscribe, User
 
-# class CustomUserViewSet(UserViewSet):
-#     """Вьюсет для пользователей"""
-
-#     queryset = User.objects.all()
-#     pagination_class = CustomPagination
-#     serializer_class = CustomUserSerializer
-#     permission_classes = (IsAuthenticated,)
-
-#     def get_user(self, id):
-#         return get_object_or_404(User, id=id)
-
-#     @action(detail=False, methods=["get"])
-#     def subscriptions(self, request):
-#         queryset = User.objects.filter(following__user=request.user)
-#         serializer = SubscribeSerializer(
-#             queryset,
-#             many=True,
-#             context={"request": request}
-#         )
-#         return Response(serializer.data)
-
 
 class CustomUserViewSet(UserViewSet):
-    """Вьюсет для кастомного юзера."""
+    """Вьюсет для пользователей"""
+
     queryset = User.objects.all()
+    pagination_class = CustomPagination
     serializer_class = CustomUserSerializer
     permission_classes = (IsAuthenticated,)
 
-    @action(
-        detail=False,
-        methods=['get'],
-    )
+    def get_user(self, id):
+        return get_object_or_404(User, id=id)
+
+    @action(detail=False, methods=["get"])
     def subscriptions(self, request):
-        user = request.user
-        queryset = User.objects.filter(subscribing__user=user)
-        paginator = CustomPagination()
-        paginated_queryset = paginator.paginate_queryset(queryset, request)
-
+        queryset = User.objects.filter(following__user=request.user)
         serializer = SubscribeSerializer(
-            paginated_queryset, many=True, context={'request': request}
+            queryset,
+            many=True,
+            context={"request": request}
         )
-
-        for user_data in serializer.data:
-            recipes_limit = request.GET.get('recipes_limit')
-            recipes = user_data.get('recipes')
-            if recipes_limit and recipes:
-                user_data['recipes'] = recipes[:int(recipes_limit)]
-        return paginator.get_paginated_response(serializer.data)
+        return Response(serializer.data)
 
     @action(
         detail=True,
