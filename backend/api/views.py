@@ -20,28 +20,6 @@ from api.services import get_shopping_list
 from recipes.models import Favorited, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Subscribe, User
 
-# class CustomUserViewSet(UserViewSet):
-#     """Вьюсет для пользователей"""
-
-#     queryset = User.objects.all()
-#     pagination_class = CustomPagination
-#     serializer_class = CustomUserSerializer
-#     permission_classes = (IsAuthenticated,)
-
-#     def get_user(self, id):
-#         return get_object_or_404(User, id=id)
-
-#     @action(detail=False,
-#             methods=["get"],)
-#     def subscriptions(self, request):
-#         queryset = User.objects.filter(following__user=request.user)
-#         pages = self.paginate_queryset(queryset)
-#         serializer = SubscribeSerializer( 
-#             pages,
-#             many=True,
-#             context={'request': request}
-#         )
-#         return self.get_paginated_response(serializer.data)
 
 class CustomUserViewSet(UserViewSet):
     """Вьюсет для пользователей"""
