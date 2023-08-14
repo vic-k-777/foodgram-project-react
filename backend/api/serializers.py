@@ -10,7 +10,7 @@ from django.db import transaction
 
 from api.validators import validate_recipe_name
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
-from users.models import Subscribe, User
+from users.models import User
 
 
 class Base64ImageField(serializers.ImageField):
@@ -175,7 +175,6 @@ class RecipeWriteSerializer(ModelSerializer):
     #     tags = data.get('tags')
     #     if len(ingredients) != len(set([item['id'] for item in ingredients])):
     #         raise serializers.Validation
-
 
     @transaction.atomic
     def tags_and_ingredients_set(self, recipe, tags, ingredients):

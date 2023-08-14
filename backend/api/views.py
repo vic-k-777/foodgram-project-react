@@ -41,6 +41,7 @@ from users.models import Subscribe, User
 #         )
 #         return Response(serializer.data)
 
+
 class CustomUserViewSet(UserViewSet):
     """Вьюсет для кастомного юзера."""
     queryset = User.objects.all()
