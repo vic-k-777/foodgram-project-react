@@ -42,7 +42,7 @@ class CustomUserViewSet(UserViewSet):
             many=True,
             context={'request': request}
         )
-        return serializer.data
+        return Response(serializer.data)
 
     # второй вариант    @action(
     #     detail=False,
