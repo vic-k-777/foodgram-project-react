@@ -163,12 +163,13 @@ class RecipeWriteSerializer(ModelSerializer):
         read_only_fields = ("author",)
 
     def validate(self, data):
-        ingredients = data.get('ingredients')
-        if len(ingredients) != len(
-            set([item['ingredients'] for item in ingredients])
-        ):
+        list_ingr = [item['ingredient'] for item in data['ingredients']]
+        all_ingredients, distinct_ingredients = (
+            len(list_ingr), len(set(list_ingr)))
+
+        if all_ingredients != distinct_ingredients:
             raise serializers.ValidationError(
-                'Дублировать ингредиенты нельзя.'
+                {'error': 'Ингредиенты дублировать нельзя.'}
             )
         return data
 
