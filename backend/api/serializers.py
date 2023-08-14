@@ -69,7 +69,7 @@ class IngredientSerializer(ModelSerializer):
 class ShortIngredientSerializer(ModelSerializer):
     """Список ингредиентов для рецепта"""
 
-    # id = serializers.IntegerField()
+    id = serializers.IntegerField()
     # amount = serializers.IntegerField(
     #     validators=(
     #         MinValueValidator(
