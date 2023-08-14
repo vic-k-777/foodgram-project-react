@@ -32,37 +32,37 @@ class CustomUserViewSet(UserViewSet):
     def get_user(self, id):
         return get_object_or_404(User, id=id)
 
-    # @action(detail=False,
-    #         methods=["get"],)
-    # def subscriptions(self, request):
-    #     queryset = User.objects.filter(following__user=request.user)  # получаем список подписок юзера
-    #     pages = self.paginate_queryset(queryset)  # пропускаем список через пагинатор
-    #     serializer = SubscribeSerializer(    # передаём в сериализатор
-    #         pages,
-    #         many=True,
-    #         context={'request': request}
-    #     )
-    #     return Response(serializer.data)
-
-    @action(
-        detail=False,
-        permission_classes=[IsAuthenticated])
+    @action(detail=False,
+            methods=["get"],)
     def subscriptions(self, request):
-        """
-        Отображает подписки.
-        """
-        user = request.user
-        queryset = User.objects.filter(
-            following__user=user).annotate(
-            recipes_count=Count("following__user__recipe"),
-            is_subscribed=Value(True),)
-        pages = self.paginate_queryset(queryset)
-        serializer = SubscribeSerializer(
+        queryset = User.objects.filter(following__user=request.user)  # получаем список подписок юзера
+        pages = self.paginate_queryset(queryset)  # пропускаем список через пагинатор
+        serializer = SubscribeSerializer(    # передаём в сериализатор
             pages,
             many=True,
-            context={'request': request},
+            context={'request': request}
         )
-        return self.get_paginated_response(serializer.data)
+        return Response(serializer.data)
+
+    # третий вариант    @action(
+    #     detail=False,
+    #     permission_classes=[IsAuthenticated])
+    # def subscriptions(self, request):
+    #     """
+    #     Отображает подписки.
+    #     """
+    #     user = request.user
+    #     queryset = User.objects.filter(
+    #         following__user=user).annotate(
+    #         recipes_count=Count("following__user__recipe"),
+    #         is_subscribed=Value(True),)
+    #     pages = self.paginate_queryset(queryset)
+    #     serializer = SubscribeSerializer(
+    #         pages,
+    #         many=True,
+    #         context={'request': request},
+    #     )
+    #     return self.get_paginated_response(serializer.data)
 
     # второй вариант    @action(
     #     detail=False,

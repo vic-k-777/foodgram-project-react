@@ -165,7 +165,7 @@ class RecipeWriteSerializer(ModelSerializer):
     # def validate_ingredients(self, ingredients):
     #     ingredient_names = set()
     #     for ingredient in ingredients:
-    #         ingredient_name = ingredient["name"]
+    #         ingredient_name = ingredient["recipe_ingredient"]
     #         if ingredient_name in ingredient_names:
     #             raise serializers.ValidationError(
     #                 "Нельзя дублировать ингредиенты"
@@ -175,7 +175,7 @@ class RecipeWriteSerializer(ModelSerializer):
 
     def validate(self, data):
         ingredients_list = []
-        for ingredient in data.get("recipeingredients"):
+        for ingredient in data.get("recipe_ingredient"):
             if ingredient.get("amount") <= 0:
                 raise serializers.ValidationError(
                     "Нужно БОЛЬШЕ ингредиентов!" "Добавь ингредиенты."
@@ -253,52 +253,52 @@ class RecipeShortSerializer(ModelSerializer):
 
 
 class SubscribeSerializer(CustomUserSerializer):
-    # recipe = RecipeShortSerializer(many=True, read_only=True)
-    # recipes_count = serializers.SerializerMethodField(read_only=True)
-    # is_subscribed = serializers.SerializerMethodField(read_only=True)
-    recipes_count = serializers.IntegerField(read_only=True)
-    recipe = serializers.SerializerMethodField()
-    is_subscribed = serializers.BooleanField(read_only=True)
+    recipe = RecipeShortSerializer(many=True, read_only=True)
+    recipes_count = serializers.SerializerMethodField(read_only=True)
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+    # recipes_count = serializers.IntegerField(read_only=True)
+    # recipe = serializers.SerializerMethodField()
+    # is_subscribed = serializers.BooleanField(read_only=True)
 
     def get_recipes_count(self, author):
         return author.recipe.count()
 
-    # def get_is_subscribed(self, obj):
-    #     user = self.context['request'].user
-    #     return Subscribe.objects.filter(author=obj, user=user).exists()
-
     def get_is_subscribed(self, obj):
-        """
-        Определяет подписку текущего пользователя.
-        """
-        sub_user = self.context.get("request").user
-        return (
-            sub_user.is_authenticated
-            and Subscribe.objects.filter(user=sub_user, author=obj).exists()
-        )
+        user = self.context['request'].user
+        return Subscribe.objects.filter(author=obj, user=user).exists()
 
-    # def get_recipe(self, obj):
-    #     request = self.context.get('request')
-    #     limit = request.GET.get('recipe_limit')
-    #     recipe = obj.recipe.all()
-    #     if limit:
-    #         recipe = recipe[:int(limit)]
-    #     serializer = RecipeShortSerializer(recipe, many=True, read_only=True)
-    #     return serializer.data
+    # def get_is_subscribed(self, obj):   # третий вариант
+    #     """
+    #     Определяет подписку текущего пользователя.
+    #     """
+    #     sub_user = self.context.get("request").user
+    #     return (
+    #         sub_user.is_authenticated
+    #         and Subscribe.objects.filter(user=sub_user, author=obj).exists()
+    #     )
 
     def get_recipe(self, obj):
-        """
-        Формирует список публикаций.
-        """
-        request = self.context.get("request")
-        limit = request.GET.get("recipe_limit")
+        request = self.context.get('request')
+        limit = request.GET.get('recipe_limit')
         recipe = obj.recipe.all()
         if limit:
-            recipe = recipe[: int(limit)]
+            recipe = recipe[:int(limit)]
         serializer = RecipeShortSerializer(recipe, many=True, read_only=True)
         return serializer.data
 
-    # def get_RecipeShortSerializer(self):
+    # def get_recipe(self, obj):   # третий вариант
+    #     """
+    #     Формирует список публикаций.
+    #     """
+    #     request = self.context.get("request")
+    #     limit = request.GET.get("recipe_limit")
+    #     recipe = obj.recipe.all()
+    #     if limit:
+    #         recipe = recipe[: int(limit)]
+    #     serializer = RecipeShortSerializer(recipe, many=True, read_only=True)
+    #     return serializer.data
+
+    # def get_RecipeShortSerializer(self):         # второй вариант
     #     from api.serializers import RecipeShortSerializer
 
     #     return RecipeShortSerializer
@@ -320,29 +320,11 @@ class SubscribeSerializer(CustomUserSerializer):
 
         return []
 
-    # class Meta:
-    #     model = User
-    #     fields = (
-    #         "id",
-    #         "email",
-    #         "username",
-    #         "first_name",
-    #         "last_name",
-    #         "is_subscribed",
-    #         "recipe",
-    #         "recipes_count",
-    #     )
-    #     read_only_fields = (
-    #         "email",
-    #         "username",
-    #         "first_name",
-    #         "last_name",
-    #     )
-
-    class Meta(UserCreateSerializer.Meta):
+    class Meta:
+        model = User
         fields = (
-            "email",
             "id",
+            "email",
             "username",
             "first_name",
             "last_name",
@@ -355,7 +337,4 @@ class SubscribeSerializer(CustomUserSerializer):
             "username",
             "first_name",
             "last_name",
-            "is_subscribed",
-            "recipe",
-            "recipes_count",
         )
