@@ -42,15 +42,12 @@ class CustomUserViewSet(UserViewSet):
             many=True,
             context={'request': request}
         )
-        return Response(serializer.data)
+        return self.gt_paginate_queryset(serializer.data)
 
-    # третий вариант    @action(
+    # третий вариант  (итог-белый фон)  @action(
     #     detail=False,
     #     permission_classes=[IsAuthenticated])
     # def subscriptions(self, request):
-    #     """
-    #     Отображает подписки.
-    #     """
     #     user = request.user
     #     queryset = User.objects.filter(
     #         following__user=user).annotate(
@@ -64,7 +61,7 @@ class CustomUserViewSet(UserViewSet):
     #     )
     #     return self.get_paginated_response(serializer.data)
 
-    # второй вариант    @action(
+    # второй вариант (итог-белый фон)   @action(
     #     detail=False,
     #     methods=["get"],
     #     serializer_class=SubscribeSerializer,

@@ -256,9 +256,6 @@ class SubscribeSerializer(CustomUserSerializer):
     recipe = RecipeShortSerializer(many=True, read_only=True)
     recipes_count = serializers.SerializerMethodField(read_only=True)
     is_subscribed = serializers.SerializerMethodField(read_only=True)
-    # recipes_count = serializers.IntegerField(read_only=True)
-    # recipe = serializers.SerializerMethodField()
-    # is_subscribed = serializers.BooleanField(read_only=True)
 
     def get_recipes_count(self, author):
         return author.recipe.count()
@@ -266,16 +263,6 @@ class SubscribeSerializer(CustomUserSerializer):
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
         return Subscribe.objects.filter(author=obj, user=user).exists()
-
-    # def get_is_subscribed(self, obj):   # третий вариант
-    #     """
-    #     Определяет подписку текущего пользователя.
-    #     """
-    #     sub_user = self.context.get("request").user
-    #     return (
-    #         sub_user.is_authenticated
-    #         and Subscribe.objects.filter(user=sub_user, author=obj).exists()
-    #     )
 
     def get_recipe(self, obj):
         request = self.context.get('request')
@@ -286,10 +273,7 @@ class SubscribeSerializer(CustomUserSerializer):
         serializer = RecipeShortSerializer(recipe, many=True, read_only=True)
         return serializer.data
 
-    # def get_recipe(self, obj):   # третий вариант
-    #     """
-    #     Формирует список публикаций.
-    #     """
+    # def get_recipe(self, obj):   # третий вариант (итог-белый фон)
     #     request = self.context.get("request")
     #     limit = request.GET.get("recipe_limit")
     #     recipe = obj.recipe.all()
@@ -298,7 +282,14 @@ class SubscribeSerializer(CustomUserSerializer):
     #     serializer = RecipeShortSerializer(recipe, many=True, read_only=True)
     #     return serializer.data
 
-    # def get_RecipeShortSerializer(self):         # второй вариант
+        # def get_is_subscribed(self, obj):   # третий вариант
+    #     sub_user = self.context.get("request").user
+    #     return (
+    #         sub_user.is_authenticated
+    #         and Subscribe.objects.filter(user=sub_user, author=obj).exists()
+    #     )
+
+    # def get_RecipeShortSerializer(self):         # второй вариант (итог-белый фон)
     #     from api.serializers import RecipeShortSerializer
 
     #     return RecipeShortSerializer
