@@ -257,7 +257,7 @@ class SubscribeSerializer(CustomUserSerializer):
     # recipes_count = serializers.SerializerMethodField(read_only=True)
     # is_subscribed = serializers.SerializerMethodField(read_only=True)
     recipes_count = serializers.IntegerField(read_only=True)
-    recipes = serializers.SerializerMethodField()
+    recipe = serializers.SerializerMethodField()
     is_subscribed = serializers.BooleanField(read_only=True)
 
     def get_recipes_count(self, author):
@@ -286,16 +286,16 @@ class SubscribeSerializer(CustomUserSerializer):
     #     serializer = RecipeShortSerializer(recipe, many=True, read_only=True)
     #     return serializer.data
 
-    def get_recipes(self, obj):
+    def get_recipe(self, obj):
         """
         Формирует список публикаций.
         """
         request = self.context.get("request")
-        limit = request.GET.get("recipes_limit")
-        recipes = obj.recipes.all()
+        limit = request.GET.get("recipe_limit")
+        recipe = obj.recipe.all()
         if limit:
-            recipes = recipes[: int(limit)]
-        serializer = RecipeShortSerializer(recipes, many=True, read_only=True)
+            recipe = recipe[: int(limit)]
+        serializer = RecipeShortSerializer(recipe, many=True, read_only=True)
         return serializer.data
 
     # def get_RecipeShortSerializer(self):
@@ -347,7 +347,7 @@ class SubscribeSerializer(CustomUserSerializer):
             "first_name",
             "last_name",
             "is_subscribed",
-            "recipes",
+            "recipe",
             "recipes_count",
         )
         read_only_fields = (
@@ -356,6 +356,6 @@ class SubscribeSerializer(CustomUserSerializer):
             "first_name",
             "last_name",
             "is_subscribed",
-            "recipes",
+            "recipe",
             "recipes_count",
         )
