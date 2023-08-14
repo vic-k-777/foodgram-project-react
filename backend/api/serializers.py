@@ -69,15 +69,15 @@ class IngredientSerializer(ModelSerializer):
 class ShortIngredientSerializer(ModelSerializer):
     """Список ингредиентов для рецепта"""
 
-    id = serializers.IntegerField()
-    amount = serializers.IntegerField(
-        validators=(
-            MinValueValidator(
-                1,
-                message='Количество ингредиента должно быть 1 или более.'
-            ),
-        )
-    )
+    # id = serializers.IntegerField()
+    # amount = serializers.IntegerField(
+    #     validators=(
+    #         MinValueValidator(
+    #             1,
+    #             message='Количество ингредиента должно быть 1 или более.'
+    #         ),
+    #     )
+    # )
 
     class Meta:
         model = Ingredient
@@ -166,10 +166,10 @@ class RecipeWriteSerializer(ModelSerializer):
         ingredients = value
         ingredient_ids = set()
         for item in ingredients:
-            ingredient_id = item['id']
+            ingredient_id = item["id"]
             if ingredient_id in ingredient_ids:
                 raise serializers.ValidationError(
-                    'Ингредиенты повторять нельзя.'
+                    "Ингредиенты повторять нельзя."
                 )
             ingredient_ids.add(ingredient_id)
         return value
