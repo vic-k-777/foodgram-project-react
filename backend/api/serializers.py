@@ -171,8 +171,8 @@ class RecipeWriteSerializer(ModelSerializer):
         return super().validate(data)
 
     @transaction.atomic
-    def tags_and_ingredients_set(self, recipes, tags, ingredients):
-        recipes.tags.set(tags)
+    def tags_and_ingredients_set(self, recipe, tags, ingredients):
+        recipe.tags.set(tags)
         if ingredients:
             ingredient_ids = [
                 ingredient.get("id") for ingredient in ingredients
@@ -180,9 +180,9 @@ class RecipeWriteSerializer(ModelSerializer):
             ingredients_queryset = Ingredient.objects.filter(
                 pk__in=ingredient_ids
             )
-            recipes_ingredients = [
+            recipe_ingredients = [
                 RecipeIngredient(
-                    recipes=recipes,
+                    recipe=recipe,
                     ingredient=ingredient,
                     amount=ingredient_data["amount"],
                 )
@@ -190,17 +190,17 @@ class RecipeWriteSerializer(ModelSerializer):
                     ingredients, ingredients_queryset
                 )
             ]
-            RecipeIngredient.objects.bulk_create(recipes_ingredients)
+            RecipeIngredient.objects.bulk_create(recipe_ingredients)
 
     @transaction.atomic
     def create(self, validated_data):
         tags = validated_data.pop("tags")
         ingredients = validated_data.pop("ingredients", None)
-        recipes = Recipe.objects.create(
+        recipe = Recipe.objects.create(
             author=self.context["request"].user, **validated_data
         )
-        self.tags_and_ingredients_set(recipes, tags, ingredients)
-        return recipes
+        self.tags_and_ingredients_set(recipe, tags, ingredients)
+        return recipe
 
     @transaction.atomic
     def update(self, instance, validated_data):
@@ -213,7 +213,7 @@ class RecipeWriteSerializer(ModelSerializer):
         tags = validated_data.pop("tags")
         ingredients = validated_data.get("ingredients")
         RecipeIngredient.objects.filter(
-            recipes=instance, ingredient__in=instance.ingredients.all()
+            recipe=instance, ingredient__in=instance.ingredients.all()
         ).delete()
         self.tags_and_ingredients_set(instance, tags, ingredients)
         instance.save()
