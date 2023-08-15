@@ -71,12 +71,6 @@ class ShortIngredientSerializer(ModelSerializer):
 
     id = serializers.IntegerField()
     amount = serializers.IntegerField(
-        validators=(
-            MinValueValidator(
-                1,
-                message='Количество ингредиента должно быть 1 или более.'
-            ),
-        )
     )
 
     class Meta:
@@ -89,7 +83,7 @@ class GetIngredientRecipeSerializer(ModelSerializer):
 
     name = serializers.SerializerMethodField()
     measurement_unit = serializers.SerializerMethodField()
-    amount = serializers.SerializerMethodField()
+    amount = serializers.IntegerField()
     ingredient = serializers.PrimaryKeyRelatedField(
         source="ingredient.id", read_only=True
     )
@@ -162,14 +156,19 @@ class RecipeWriteSerializer(ModelSerializer):
         fields = "__all__"
         read_only_fields = ("author",)
 
-    def validate_ingredients(self, value):
-        ingredients = [item["id"] for item in value]
-        for ingredient in ingredients:
-            if ingredients.count(ingredient) > 1:
+    def validate(self, data):
+        ingredients_list = []
+        for ingredient in data.get("ingredients"):
+            if ingredient.get("amount") <= 0:
                 raise serializers.ValidationError(
-                    "В рецепте нельзя дублировать ингредиенты."
+                    "Количество ингредиента не может быть равно нулю."
                 )
-        return value
+            ingredients_list.append(ingredient.get("id"))
+        if len(set(ingredients_list)) != len(ingredients_list):
+            raise serializers.ValidationError(
+                "Дублировать ингредиенты в рецепте нельзя!"
+            )
+        return super().validate(data)
 
     @transaction.atomic
     def tags_and_ingredients_set(self, recipe, tags, ingredients):
