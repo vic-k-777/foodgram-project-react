@@ -123,13 +123,13 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name="recipes",
+        related_name="recipe",
         verbose_name="рецепт",
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name="ingredients",
+        related_name="ingredient",
         verbose_name="ингредиент",
     )
     amount = models.PositiveSmallIntegerField(
@@ -149,9 +149,9 @@ class RecipeIngredient(models.Model):
         constraints = [
             UniqueConstraint(
                 fields=[
-                    "recipes",
-                    "ingredients"
-                ], name="recipes unique ingredients"
+                    "recipe",
+                    "ingredient"
+                ], name="recipe unique ingredient"
             )
         ]
 
