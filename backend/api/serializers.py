@@ -90,7 +90,7 @@ class GetIngredientRecipeSerializer(ModelSerializer):
 
     class Meta:
         model = RecipeIngredient
-        fields = ("ingredient", "name", "measurement_unit", "amount")
+        fields = ("ingredient", "name", "measurement_unit", "amount", "id")
 
     def get_name(self, obj):
         return obj.ingredient.name
