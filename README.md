@@ -1,4 +1,7 @@
-<div class="tenor-gif-embed" data-postid="16556109" data-share-method="host" data-aspect-ratio="1" data-width="100%"><a href="https://tenor.com/view/fat-kitty-cat-cat-cute-cooking-excited-gif-16556109">Fat Kitty Cat Cute Sticker</a>from <a href="https://tenor.com/search/fat+kitty+cat-stickers">Fat Kitty Cat Stickers</a></div> <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
+
+<div id="header" align="center">
+   <img src="https://media.giphy.com/media/O5hoOqZtdwzoQ/giphy.gif" width="100"/>
+</div>
 
 
 Проект: "Продуктовый помощник".
